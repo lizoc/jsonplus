@@ -3,6 +3,11 @@
   <p align="center">Json+</p>
   <p align="center" style="font-size: 0.5em">Just yet another JSON dialect.</p>
 </h1>
+<p align="center">
+    <a href="https://www.nuget.org/packages/Lizoc.JsonPlus"><img src="https://img.shields.io/nuget/v/Lizoc.JsonPlus.svg?style=for-the-badge" alt="NuGet Package"></a>
+    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="MIT License"></a>
+</p>
+
 
 What does this do?
 ==================
