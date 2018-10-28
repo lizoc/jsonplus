@@ -6,14 +6,17 @@ namespace Lizoc.JsonPlus
 {
     /// <summary>
     /// This class represents a key and value tuple representing a member in an <see cref="JsonPlusObject"/>.
-    /// <code>
+    /// </summary>
+    /// <remarks>
+    /// The following code demonstrates an object member:
+    /// ```json+
     /// root {
     ///     items = [
     ///       "1",
     ///       "2"]
     /// }
-    /// </code>
-    /// </summary>
+    /// ```
+    /// </remarks>
     public sealed class JsonPlusObjectMember : IJsonPlusNode
     {
         private readonly List<JsonPlusValue> _internalValues;
@@ -264,7 +267,7 @@ namespace Lizoc.JsonPlus
                 Value.Equals(other);
         }
 
-        /// <see cref="JsonPlusValue.Equals(object))"/>
+        /// <see cref="JsonPlusValue.Equals(object)"/>
         public override bool Equals(object obj)
         {
             return obj is IJsonPlusNode element && Equals(element);

@@ -9,6 +9,7 @@ namespace Lizoc.JsonPlus
     /// </summary>
     public sealed class JsonPlusUtility
     {
+        /// <summary>
         /// Parse Json+ source code embedded in an assembly resource.
         /// </summary>
         /// <param name="resourceName">The name of the resource that contains the source text.</param>

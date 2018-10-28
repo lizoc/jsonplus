@@ -10,6 +10,9 @@ using Lizoc.PowerShell.JsonPlus;
 
 namespace Lizoc.PowerShell.Commands
 {
+    /// <summary>
+    /// Converts a Json+ formatted string to a custom object.
+    /// </summary>
     [Cmdlet(
         VerbsData.ConvertFrom, "JsonPlus", 
         HelpUri = "http://docs.lizoc.com/ps/convertfromjsonplus",
@@ -31,9 +34,15 @@ namespace Lizoc.PowerShell.Commands
         private int _recurseLevel = -1; // this will become 0 when called by the root node 
         private int _maxRecurseLevel = -1;
 
+        /// <summary>
+        /// Specifies the Json+ strings to convert to Json+ objects. Enter a variable that contains the string, or type a command or expression that gets the string.
+        /// </summary>
         [AllowEmptyString, Parameter(Mandatory = true, Position = 0, ValueFromPipeline = true)]
         public string InputObject { get; set; }
 
+        /// <summary>
+        /// Restricts the type of source that the `include` directive may use. Defaults to no restriction.
+        /// </summary>
         [Parameter()]
         [ValidateSet(new string[] { "Any", "File", "Url", "Environment" })]
         // [ValidateSet(new string[] { "Any", "File", "Url", "Assembly", "Environment" })]
@@ -70,6 +79,9 @@ namespace Lizoc.PowerShell.Commands
             }
         }
 
+        /// <summary>
+        /// Restricts the recursion level to convert. If you do not specify this parameter, the recursion level will not be limited.
+        /// </summary>
         [Parameter()]
         [ValidateRange(0, int.MaxValue)]
         public int Depth
@@ -78,15 +90,18 @@ namespace Lizoc.PowerShell.Commands
             set { _maxRecurseLevel = value; }
         }
 
+        /// <see cref="Cmdlet.BeginProcessing()" />
         protected override void BeginProcessing()
         {
         }
 
+        /// <see cref="Cmdlet.ProcessRecord()" />
         protected override void ProcessRecord()
         {
             _inputObjectBuffer.Add(this.InputObject);
         }
 
+        /// <see cref="Cmdlet.EndProcessing()" />
         protected override void EndProcessing()
         {
             // ignore empty entry
