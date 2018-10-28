@@ -1,0 +1,25 @@
+﻿using System;
+using Xunit;
+using Lizoc.JsonPlus;
+
+namespace Lizoc.JsonPlus.Tests
+{
+    public class FallbackTests
+    {
+        [Fact]
+        public void CanParseFallbackFile()
+        {
+            var baseContext = ResUtility.GetEmbed("FallbackBase.jsonp");
+            var userContext = ResUtility.GetEmbed("FallbackUser.jsonp");
+            var merged = userContext.WithFallback(baseContext);
+
+            var val1 = merged.GetString("root.some-property1");
+            var val2 = merged.GetString("root.some-property2");
+            var val3 = merged.GetString("root.some-property3");
+
+            Assert.Equal("123", val1);
+            Assert.Equal("456", val2);
+            Assert.Equal("789", val3);
+        }
+    }
+}

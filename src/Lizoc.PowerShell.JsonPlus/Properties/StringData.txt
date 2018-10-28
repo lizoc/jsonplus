@@ -1,0 +1,5 @@
+JsonPlusUnsupportedRootNodeType = Root node must be an object.
+JsonPlusAmbiguousType           = Unable to determine data type.
+JsonPlusAmbiguousTypeInArray    = Unable to determine data type (index position {0}).
+JsonPlusErrorAtPath             = An error has occured at path "{0}".
+JsonPlusUnsupportedType         = The node contains an unrecognized value.

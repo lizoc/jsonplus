@@ -1,0 +1,23 @@
+#include cslib,net462,xunit,xunit-net462,xunit-netcoreapp2
+clsCompliant = false
+allowPartialTrust = false
+compiler {
+	cslang = 7
+}
+dependencies {
+	'Lizoc.JsonPlus' {
+		type = 'project'
+	}
+}
+files {
+ 	'Resource/**/*.jsonp' {
+		type = 'embeddedResource'
+	}
+}
+frameworks {
+	'netcoreapp2.0' {
+		compiler {
+			constants = ['NETSTANDARD']
+		}
+	}
+}
