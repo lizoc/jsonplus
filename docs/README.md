@@ -23,12 +23,12 @@ Json+ is a JSON dialect that is easier to write. You can [read more about it her
 ## Contributing
 - [Branching Guide](branching.md)
 - [Contributor code of conduct](contributor-conduct.md)
+- [Contributor License Agreement](contributor-license-agreement.md)
 
-## Legal Info
+## Licensing
 - [Project License](../LICENSE)
 - [Third Party Licenses](../THIRD-PARTY-LICENSE.txt)
-- [Contributor License Agreement](contributor-license-agreement-g.md)
-- [Distro License](distro-license-g.txt)
+- [Distro License](distro-license.txt)
 
 
 *Last updated on 24/10/2018*

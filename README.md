@@ -28,7 +28,7 @@ If you have written JSON by hand, you probably have experienced these:
 
 Json+ to the rescue!
 
-```JSON
+```python
 foo = abc
 # a comment!
 bar = """abc
