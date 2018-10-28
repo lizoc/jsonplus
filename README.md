@@ -1,6 +1,12 @@
-What is Json+
-=============
-Just yet another JSON dialect. We want an easier way to write JSON by hand.
+<h1 align="center">
+  <img src="https://raw.githubusercontent.com/lizoc/jsonplus/master/icon.png" height="150" width="150"/>
+  <p align="center">Json+</p>
+  <p align="center" style="font-size: 0.5em">Just yet another JSON dialect.</p>
+</h1>
+
+What does this do?
+==================
+Json+ is a JSON dialect that we think is easier to write by hand. This repo has parser for Json+, written in C#.
 
 
 Show me the money
