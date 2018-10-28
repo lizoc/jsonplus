@@ -43,8 +43,12 @@ frameworks {
 		dependencies {
 			'PowerShellStandard.Library' {
 				type = 'package'
-				version = '5.1.0-preview-03'
+				version = '5.1.0-RC1'
 			}
 		}
 	}
+}
+# PowerShellStandard.Library is still not out of ga
+versioning {
+    suffix = 'beta'
 }
