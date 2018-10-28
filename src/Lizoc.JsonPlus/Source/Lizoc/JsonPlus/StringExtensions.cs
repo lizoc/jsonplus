@@ -2,7 +2,7 @@
 
 namespace Lizoc.JsonPlus
 {
-    public static class StringExtensions
+    internal static class StringExtensions
     {
         public static bool NeedQuotes(this string s)
         {
