@@ -4,7 +4,6 @@ namespace Lizoc.JsonPlus
 {
     internal static class JPlusConstants
     {
-
         /*
          * These are all the characters defined as whitespace by spec.
          * Json+ only recognizes NewLine as an end of line marker.

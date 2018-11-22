@@ -141,7 +141,7 @@ namespace Lizoc.JsonPlus
                 while (parent is JsonPlusValue)
                 {
                     parent = parent.Parent;
-}
+                }
 
                 // Fail case
                 if (parent is JsonPlusArray)
@@ -246,61 +246,26 @@ namespace Lizoc.JsonPlus
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
-                        IJsonPlusNode parsedInclude = ParseInclude(null);
-                        if (_root.Type != JsonPlusType.Object)
-                        {
-                            _root.Clear();
-                            _root.Add(parsedInclude.GetObject());
-                        }
-                        else
-                        {
-                            _root.Add(parsedInclude.GetObject());
-                        }
+                        _root.Add(ParseInclude(_root));
                         break;
 
                     // may contain one array and one array only
                     case TokenType.StartOfArray:
-                        _root.Clear();
-                        _root.Add(ParseArray(null));
-                        ConsumeWhitelines();
-                        if (_tokens.Current.Type != TokenType.EndOfFile)
-                            throw JsonPlusParserException.Create(_tokens.Current, Path, RS.OnlyOneContainerSupported);
-                        return;
+                        _root.Add(ParseArray(_root));
+                        break;
 
                     case TokenType.StartOfObject:
-                    {
-                        JsonPlusObject parsedObject = ParseObject(null);
-                        if (_root.Type != JsonPlusType.Object)
-                        {
-                            _root.Clear();
-                            _root.Add(parsedObject);
-                        }
-                        else
-                        {
-                            _root.Add(parsedObject.GetObject());
-                        }
+                        _root.Add(ParseObject(_root).GetObject());
                         break;
-                    }
 
                     case TokenType.LiteralValue:
-                    {
                         if (_tokens.Current.IsNonSignificant())
                             ConsumeWhitelines();
                         if (_tokens.Current.Type != TokenType.LiteralValue)
                             break;
 
-                        JsonPlusObject parsedObject = ParseObject(null);
-                        if (_root.Type != JsonPlusType.Object)
-                        {
-                            _root.Clear();
-                            _root.Add(parsedObject);
-                        }
-                        else
-                        {
-                            _root.Add(parsedObject.GetObject());
-                        }
+                        _root.Add(ParseObject(_root).GetObject());
                         break;
-                    }
 
                     case TokenType.Comment:
                     case TokenType.EndOfLine:

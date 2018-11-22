@@ -59,12 +59,13 @@ y = hello
         }
 
         [Fact]
-        public void CanIncludeAtRoot()
+        public void CanIncludeAnywhereAtRoot()
         {
-            // #todo
-            // nullreferenceexception when inserting things between the 2 includes or before the first include
+            // inserting things between the 2 includes or before the first include
             var source = @"
+hello = world
 include ""foo""
+banana = true
 include ""bar""
 cat = meow
 ";
@@ -78,6 +79,27 @@ cat = meow
             Assert.Equal(32, config.GetInt32("a"));
             Assert.Equal("bar", config.GetString("b.foo"));
             Assert.Equal("meow", config.GetString("cat"));
+        }
+
+        [Fact]
+        public void CanParseIncludeAtRoot()
+        {
+            var source = @"
+include ""foo""
+a : include ""foo""
+";
+            var includeSrc = @"
+x = 123
+y = hello
+";
+            Task<string> includeCallback(IncludeSource resType, string path)
+                => Task.FromResult(includeSrc);
+
+            var config = JsonPlusParser.Parse(source, includeCallback);
+            Assert.Equal(123, config.GetInt32("x"));
+            Assert.Equal("hello", config.GetString("y"));
+            Assert.Equal(123, config.GetInt32("a.x"));
+            Assert.Equal("hello", config.GetString("a.y"));
         }
 
         [Fact]
