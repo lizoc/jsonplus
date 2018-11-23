@@ -15,29 +15,18 @@ namespace Lizoc.JsonPlus
     public class JsonPlusValue : List<IJsonPlusNode>, IJsonPlusNode
     {
         private static readonly Regex TimeSpanRegex = new Regex(
-            @"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(" + 
-            "nanoseconds|nanosecond|ns|" + 
-            "microseconds|microsecond|us|" +
-            "milliseconds|millisecond|ms|" +
-            "seconds|second|s|" + 
-            "minutes|minute|m|" + 
-            "hours|hour|h|" + 
-            "days|day|d" + 
+            @"^(?<value>([0-9]+(\.[0-9]+)?))(?<unit>(" + 
+            "ns|us|ms|" + 
+            "s|m|h|d" +
             "))$", RegexOptions.Compiled);
 
         private static readonly Regex ByteSizeRegex = new Regex(
-            @"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(" +
-            "bytes|byte|" +
-            "kilobytes|kilobyte|kB|" +
-            "kibibytes|kibibyte|kb|" +
-            "megabytes|megabyte|mB|" +
-            "mebibytes|mebibyte|mb|" +
-            "gigabytes|gigabyte|gB|" +
-            "gibibytes|gibibyte|gb|" +
-            "terabytes|terabyte|tB|" +
-            "tebibytes|tebibyte|tb|" +
-            "petabytes|petabyte|pB|" +
-            "pebibytes|pebibyte|pb|" +
+            @"^(?<value>([0-9]+(\.[0-9]+)?))(?<unit>(" +
+            "kB|kb|" +
+            "mB|mb|" +
+            "gB|gb|" +
+            "tB|tb|" +
+            "pB|pb|" +
             "))$", RegexOptions.Compiled);
 
         /// <summary>
@@ -285,7 +274,9 @@ namespace Lizoc.JsonPlus
         /// Returns this value as a <see cref="bool"/>.
         /// </summary>
         /// <exception cref="NotSupportedException">The value is not one of the following keywords: true, false, yes, no</exception>
-        /// <returns>The result of this value casted to a <see cref="bool"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="bool"/>.
+        /// </returns>
         public bool GetBoolean()
         {
             string value = GetString();
@@ -307,7 +298,9 @@ namespace Lizoc.JsonPlus
         /// Returns this value as a <see cref="decimal"/>.
         /// </summary>
         /// <exception cref="JsonPlusException">The value cannot be converted to a <see cref="decimal"/>, or the keywords `infinity` or `NaN` were used.</exception>
-        /// <returns>The result of this value casted to a <see cref="decimal"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="decimal"/>.
+        /// </returns>
         public decimal GetDecimal()
         {
             string value = GetString();
@@ -335,7 +328,9 @@ namespace Lizoc.JsonPlus
         /// Returns this value as a <see cref="float"/>.
         /// </summary>
         /// <exception cref="JsonPlusException">The value cannot be converted to a <see cref="float"/>.</exception>
-        /// <returns>The result of this value casted to a <see cref="float"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="float"/>.
+        /// </returns>
         public float GetSingle()
         {
             string value = GetString();
@@ -365,7 +360,9 @@ namespace Lizoc.JsonPlus
         /// Returns this value as a <see cref="double"/>.
         /// </summary>
         /// <exception cref="JsonPlusException">The value cannot be converted to a <see cref="double"/>.</exception>
-        /// <returns>The result of this value casted to a <see cref="double"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="double"/>.
+        /// </returns>
         public double GetDouble()
         {
             string value = GetString();
@@ -395,7 +392,9 @@ namespace Lizoc.JsonPlus
         /// Returns this value as a <see cref="long"/>.
         /// </summary>
         /// <exception cref="JsonPlusException">Unable to convert this value to <see cref="long"/>.</exception>
-        /// <returns>The result of this value casted to a <see cref="long"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="long"/>.
+        /// </returns>
         public long GetInt64()
         {
             string value = GetString();
@@ -438,7 +437,9 @@ namespace Lizoc.JsonPlus
         /// Returns this value as an <see cref="int"/>.
         /// </summary>
         /// <exception cref="JsonPlusException">Unable to convert this value to <see cref="int"/>.</exception>
-        /// <returns>The result of this value casted to an <see cref="int"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to an <see cref="int"/>.
+        /// </returns>
         public int GetInt32()
         {
             string value = GetString();
@@ -481,7 +482,9 @@ namespace Lizoc.JsonPlus
         /// Returns this value as a <see cref="byte"/>.
         /// </summary>
         /// <exception cref="JsonPlusException">Unable to convert this value to <see cref="byte"/>.</exception>
-        /// <returns>The result of this value casted to a <see cref="byte"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="byte"/>.
+        /// </returns>
         public byte GetByte()
         {
             string value = GetString();
@@ -523,7 +526,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns this value as an enumerable collection <see cref="byte"/> objects.
         /// </summary>
-        /// <returns>The result of this value casted to a <see cref="IList{Byte}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="IList{Byte}"/>.
+        /// </returns>
         public IList<byte> GetByteList()
         {
             return GetArray().Select(v => ((JsonPlusValue)v).GetByte()).ToList();
@@ -532,7 +537,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns this value as an enumerable collection <see cref="int"/> objects.
         /// </summary>
-        /// <returns>The result of this value casted to a <see cref="IList{Int32}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="IList{Int32}"/>.
+        /// </returns>
         public IList<int> GetInt32List()
         {
             return GetArray().Select(v => ((JsonPlusValue)v).GetInt32()).ToList();
@@ -541,7 +548,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns this value as an enumerable collection <see cref="long"/> objects.
         /// </summary>
-        /// <returns>The result of this value casted to a <see cref="IList{Int64}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="IList{Int64}"/>.
+        /// </returns>
         public IList<long> GetInt64List()
         {
             return GetArray().Select(v => ((JsonPlusValue)v).GetInt64()).ToList();
@@ -550,7 +559,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns this value as an enumerable collection <see cref="bool"/> objects.
         /// </summary>
-        /// <returns>The result of this value casted to a <see cref="IList{Boolean}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="IList{Boolean}"/>.
+        /// </returns>
         public IList<bool> GetBooleanList()
         {
             return GetArray().Select(v => ((JsonPlusValue)v).GetBoolean()).ToList();
@@ -559,7 +570,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns this value as an enumerable collection <see cref="float"/> objects.
         /// </summary>
-        /// <returns>The result of this value casted to a <see cref="IList{Single}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="IList{Single}"/>.
+        /// </returns>
         public IList<float> GetSingleList()
         {
             return GetArray().Select(v => ((JsonPlusValue)v).GetSingle()).ToList();
@@ -568,7 +581,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns this value as an enumerable collection <see cref="double"/> objects.
         /// </summary>
-        /// <returns>The result of this value casted to a <see cref="IList{Double}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="IList{Double}"/>.
+        /// </returns>
         public IList<double> GetDoubleList()
         {
             return GetArray().Select(v => ((JsonPlusValue)v).GetDouble()).ToList();
@@ -577,7 +592,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns this value as an enumerable collection <see cref="decimal"/> objects.
         /// </summary>
-        /// <returns>The result of this value casted to a <see cref="IList{Decimal}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="IList{Decimal}"/>.
+        /// </returns>
         public IList<decimal> GetDecimalList()
         {
             return GetArray().Select(v => ((JsonPlusValue)v).GetDecimal()).ToList();
@@ -586,7 +603,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns this value as an enumerable collection <see cref="string"/> objects.
         /// </summary>
-        /// <returns>The result of this value casted to a <see cref="IList{String}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="IList{String}"/>.
+        /// </returns>
         public IList<string> GetStringList()
         {
             return GetArray().Select(v => v.GetString()).ToList();
@@ -607,7 +626,9 @@ namespace Lizoc.JsonPlus
         /// Returns this value as a <see cref="TimeSpan"/>.
         /// </summary>
         /// <param name="allowInfinite">Set to `true` to allow the keyword `infinite`, which will return <see cref="Timeout.InfiniteTimeSpan"/>. Otherwise, `false`. Defaults to `true`.</param>
-        /// <returns>The result of this value casted to a <see cref="TimeSpan"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="TimeSpan"/>.
+        /// </returns>
         public TimeSpan GetTimeSpan(bool allowInfinite = true)
         {
             string res = GetString();
@@ -624,38 +645,24 @@ namespace Lizoc.JsonPlus
 
                 switch (unit)
                 {
-                    case "nanoseconds":
-                    case "nanosecond":
                     case "ns":
                         return TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * numeric / 1000000.0));
 
-                    case "microseconds":
-                    case "microsecond":
                     case "us":
                         return TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * numeric / 1000.0));
 
-                    case "milliseconds":
-                    case "millisecond":
                     case "ms":
                         return TimeSpan.FromMilliseconds(numeric);
 
-                    case "seconds":
-                    case "second":
                     case "s":
                         return TimeSpan.FromSeconds(numeric);
 
-                    case "minutes":
-                    case "minute":
                     case "m":
                         return TimeSpan.FromMinutes(numeric);
 
-                    case "hours":
-                    case "hour":
                     case "h":
                         return TimeSpan.FromHours(numeric);
 
-                    case "days":
-                    case "day":
                     case "d":
                         return TimeSpan.FromDays(numeric);
                 }
@@ -686,25 +693,26 @@ namespace Lizoc.JsonPlus
         /// Returns this value as a <see cref="Nullable{Int64}"/> by parsing the value as a number with data size unit.
         /// </summary>
         /// <exception cref="OverflowException">Maxiumum supported size is 7 exbibytes (e), or 9 exabytes (eb).</exception>
-        /// <returns>The result of this value casted to a <see cref="Nullable{Int64}"/>.</returns>
+        /// <returns>
+        /// The result of this value casted to a <see cref="Nullable{Int64}"/>.
+        /// </returns>
         /// <remarks>
         /// This method returns a value of type <see cref="Int64"/>. Therefore, the maximum supported size is 7e (or 9eb).
         /// 
         /// To specify a byte size, append any of the following keywords to a number:
         /// 
-        /// | Unit                     | Meaning                    |
-        /// |--------------------------|----------------------------|
-        /// | byte, bytes              | This unit will be ignored. |
-        /// | kB, kilobyte, kilobytes  | x1000                      |
-        /// | kb, kibibyte, kibibytes  | x1024                      |
-        /// | mB, megabyte, megabytes  | x1000^2                    |
-        /// | mb, mebibyte, mebibytes  | x1024^2                    |
-        /// | gB, gigabyte, gigabytes  | x1000^3                    |
-        /// | gb, gibibyte, gibibytes  | x1024^3                    |
-        /// | tB, terabyte, terabytes  | x1000^4                    |
-        /// | tb, tebibyte, tebibyte   | x1024^4                    |
-        /// | pB, petabyte, petabytes  | x1000^5                    |
-        /// | pb, pebibyte, pebibytes  | x1024^5                    |
+        /// | Unit | Meaning                    |
+        /// |------|----------------------------|
+        /// | kB   | x1000                      |
+        /// | kb   | x1024                      |
+        /// | mB   | x1000^2                    |
+        /// | mb   | x1024^2                    |
+        /// | gB   | x1000^3                    |
+        /// | gb   | x1024^3                    |
+        /// | tB   | x1000^4                    |
+        /// | tb   | x1024^4                    |
+        /// | pB   | x1000^5                    |
+        /// | pb   | x1024^5                    |
         /// </remarks>
         public long? GetByteSize()
         {
@@ -719,57 +727,24 @@ namespace Lizoc.JsonPlus
 
                 switch (unit)
                 {
-                    case "bytes":
-                    case "byte":
-                        return long.Parse(v);
-
-                    case "kilobytes":
-                    case "kilobyte":
                     case "kB":
                         return (long.Parse(v) * 1000L);
-
-                    case "kibibytes":
-                    case "kibibyte":
                     case "kb":
                         return (long.Parse(v) * 1024L);
-
-                    case "megabytes":
-                    case "megabyte":
                     case "mB":
                         return (long.Parse(v) * 1000L * 1000L);
-
-                    case "mebibytes":
-                    case "mebibyte":
                     case "mb":
                         return (long.Parse(v) * 1024L * 1024L);
-
-                    case "gigabytes":
-                    case "gigabyte":
                     case "gB":
                         return (long.Parse(v) * 1000L * 1000L * 1000L);
-
-                    case "gibibytes":
-                    case "gibibyte":
                     case "gb":
                         return (long.Parse(v) * 1024L * 1024L * 1024L);
-
-                    case "terabytes":
-                    case "terabyte":
                     case "tB":
                         return (long.Parse(v) * 1000L * 1000L * 1000L * 1000L);
-
-                    case "tebibytes":
-                    case "tebibyte":
                     case "tb":
                         return (long.Parse(v) * 1024L * 1024L * 1024L * 1024L);
-
-                    case "petabytes":
-                    case "petabyte":
                     case "pB":
                         return (long.Parse(v) * 1000L * 1000L * 1000L * 1000L * 1000L);
-
-                    case "pebibytes":
-                    case "pebibyte":
                     case "pb":
                         return (long.Parse(v) * 1024L * 1024L * 1024L * 1024L * 1024L);
                 }
@@ -802,7 +777,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns a string representation of this <see cref="JsonPlusValue"/>.
         /// </summary>
-        /// <returns>A string representation of this <see cref="JsonPlusValue"/>.</returns>
+        /// <returns>
+        /// A string representation of this <see cref="JsonPlusValue"/>.
+        /// </returns>
         public override string ToString()
         {
             return ToString(0, 2);
@@ -845,7 +822,9 @@ namespace Lizoc.JsonPlus
         /// Returns a value indicating whether the value of this instance is equal to the value of the specified <see cref="JsonPlusValue"/> instance.
         /// </summary>
         /// <param name="other">The object to compare to this instance.</param>
-        /// <returns>`true` if the <paramref name="other"/> parameter equals the value of this instance. Otherwise, `false`.</returns>
+        /// <returns>
+        /// `true` if the <paramref name="other"/> parameter equals the value of this instance. Otherwise, `false`.
+        /// </returns>
         protected bool Equals(JsonPlusValue other)
         {
             return Type == other.Type && GetString() == other.GetString();
@@ -856,7 +835,9 @@ namespace Lizoc.JsonPlus
         /// </summary>
         /// <param name="other">The object to compare to this instance.</param>
         /// <exception cref="JsonPlusException">The Json+ data type is unsupported.</exception>
-        /// <returns>`true` if the <paramref name="other"/> parameter equals the value of this instance. Otherwise, `false`.</returns>
+        /// <returns>
+        /// `true` if the <paramref name="other"/> parameter equals the value of this instance. Otherwise, `false`.
+        /// </returns>
         /// <remarks>
         /// A <see cref="JsonPlusValue"/> is an aggregate of objects of the same type. Therefore, there are possibilities where it can match with any other 
         /// objects of the same type. For example, a <see cref="JsonPlusLiteralValue"/> can have the same value as a <see cref="JsonPlusValue"/>.
@@ -889,7 +870,9 @@ namespace Lizoc.JsonPlus
         /// Returns a value indicating whether this instance is equal to a specified object.
         /// </summary>
         /// <param name="obj">The object to compare to this instance.</param>
-        /// <returns>`true` if <paramref name="obj"/> is an instance of <see cref="IJsonPlusNode"/> and equals the value of this instance. Otherwise, `false`.</returns>
+        /// <returns>
+        /// `true` if <paramref name="obj"/> is an instance of <see cref="IJsonPlusNode"/> and equals the value of this instance. Otherwise, `false`.
+        /// </returns>
         public override bool Equals(object obj)
         {
             return obj is IJsonPlusNode value && Equals(value);
@@ -898,7 +881,9 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
-        /// <returns>A 32-bit signed integer hash code.</returns>
+        /// <returns>
+        /// A 32-bit signed integer hash code.
+        /// </returns>
         public override int GetHashCode()
         {
             const int seed = 613;
@@ -915,7 +900,9 @@ namespace Lizoc.JsonPlus
         /// </summary>
         /// <param name="val1">The first object to compare.</param>
         /// <param name="val2">The second object to compare.</param>
-        /// <returns>`true` if <paramref name="val1"/> and <paramref name="val2"/> represent the same value. Otherwise, `false`.</returns>
+        /// <returns>
+        /// `true` if <paramref name="val1"/> and <paramref name="val2"/> represent the same value. Otherwise, `false`.
+        /// </returns>
         public static bool operator ==(JsonPlusValue val1, JsonPlusValue val2)
         {
             return Equals(val1, val2);
@@ -926,7 +913,9 @@ namespace Lizoc.JsonPlus
         /// </summary>
         /// <param name="val1">The first object to compare.</param>
         /// <param name="val2">The second object to compare.</param>
-        /// <returns>`true` if <paramref name="val1"/> and <paramref name="val2"/> do not represent the same value. Otherwise, `false`.</returns>
+        /// <returns>
+        /// `true` if <paramref name="val1"/> and <paramref name="val2"/> do not represent the same value. Otherwise, `false`.
+        /// </returns>
         public static bool operator !=(JsonPlusValue val1, JsonPlusValue val2)
         {
             return !Equals(val1, val2);
