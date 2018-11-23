@@ -478,6 +478,39 @@ foo : ${?bar}${?baz}
             _output.WriteLine($"Exception message: {ex.Message}");
         }
 
+        [Fact]
+        public void SubPathWithDotAreQuoted()
+        {
+            var source = @"
+foo { ""bar.dada"" = 123 }
+baz = ${foo.""bar.dada""}
+";
+            var root = JsonPlusParser.Parse(source);
+            Assert.Equal(123, root.GetInt32("baz"));
+        }
+
+        [Fact]
+        public void SubPathWithDotCanUseAltQuoted()
+        {
+            var source = @"
+foo { 'bar.d\'ada' = 123 }
+baz = ${foo.'bar.d\'ada'}
+";
+            var root = JsonPlusParser.Parse(source);
+            Assert.Equal(123, root.GetInt32("baz"));
+        }
+
+        [Fact]
+        public void SubPathWithDotAndQuoteAreEscaped()
+        {
+            var source = @"
+foo { ""bar.da\""da"" = 123 }
+baz = ${foo.""bar.da\""da""}
+";
+            var root = JsonPlusParser.Parse(source);
+            Assert.Equal(123, root.GetInt32("baz"));
+        }
+
         /// <summary>
         /// A substitution is replaced with any value type (number, object, string, array, true, false, null)
         /// </summary>

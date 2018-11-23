@@ -116,13 +116,13 @@ namespace Lizoc.JsonPlus
 
                     default:
                         string[] split = tokens.Current.Value.Split('.');
-                        for (int i = 0; i < split.Length-1; ++i)
+                        for (int i = 0; i < split.Length - 1; ++i)
                         {
                             sb.Append(split[i]);
                             result.Add(sb.ToString());
                             sb.Clear();
                         }
-                        sb.Append(split[split.Length-1]);
+                        sb.Append(split[split.Length - 1]);
                         break;
                 }
                 tokens.Next();

@@ -407,7 +407,8 @@ namespace Lizoc.JsonPlus
                 parenCount++;
             }
 
-            if (!PullQuoted(includeTokens))
+            if (!PullQuoted(includeTokens, JPlusConstants.QuoteChar) && 
+                !PullQuoted(includeTokens, JPlusConstants.AltQuoteChar))
             {
                 ResetIndex();
                 return false;
@@ -503,6 +504,8 @@ namespace Lizoc.JsonPlus
             {
                 case '"':
                     return ("\"");
+                case '\'':
+                    return ("'");
                 case '\\':
                     return ("\\");
                 case '/':
@@ -590,15 +593,22 @@ namespace Lizoc.JsonPlus
             switch (Peek)
             {
                 case JPlusConstants.AltQuoteChar:
-                case JPlusConstants.QuoteChar:
-                    if (PullTripleQuoted(tokens) || PullQuoted(tokens))
+                    if (PullTripleQuoted(tokens, JPlusConstants.AltTripleQuote) || PullQuoted(tokens, JPlusConstants.AltQuoteChar))
                         return true;
                     throw new JsonPlusTokenizerException(RS.CloseLiteralQuoteMissing, Token.Error(this));
+
+                case JPlusConstants.QuoteChar:
+                    if (PullTripleQuoted(tokens, JPlusConstants.TripleQuote) || PullQuoted(tokens, JPlusConstants.QuoteChar))
+                        return true;
+                    throw new JsonPlusTokenizerException(RS.CloseLiteralQuoteMissing, Token.Error(this));
+
                 case '-':
                 case '+':
                     return PullInfinity(tokens) || PullNumbers(tokens) || PullUnquoted(tokens);
+
                 case '0':
                     return PullHexadecimal(tokens) || PullOctet(tokens) || PullNumbers(tokens) || PullUnquoted(tokens);
+
                 case '.':
                 case '1':
                 case '2':
@@ -610,16 +620,21 @@ namespace Lizoc.JsonPlus
                 case '8':
                 case '9':
                     return PullNumbers(tokens) || PullUnquoted(tokens);
+
                 case JPlusConstants.InfinityKeywordFirstChar:
                     return PullInfinity(tokens) || PullUnquoted(tokens);
+
                 case JPlusConstants.NanKeywordFirstChar:
                     return PullNan(tokens) || PullUnquoted(tokens);
+
                 case JPlusConstants.TrueKeywordFirstChar: // true
                 case JPlusConstants.FalseKeywordFirstChar: // false
                 case JPlusConstants.AltTrueKeywordFirstChar: // yes
                     return PullBoolean(tokens) || PullUnquoted(tokens);
+
                 case JPlusConstants.NullKeywordFirstChar: // null or no
                     return PullNull(tokens) || PullBoolean(tokens) || PullUnquoted(tokens);
+
                 default:
                     return PullUnquoted(tokens);
             }
@@ -917,14 +932,14 @@ namespace Lizoc.JsonPlus
         /// Returns a quoted <see cref="TokenType.LiteralValue"/> token from the tokenizer's current position.
         /// </summary>
         /// <returns>A <see cref="TokenType.LiteralValue"/> token from the tokenizer's current position.</returns>
-        private bool PullQuoted(TokenizeResult tokens)
+        private bool PullQuoted(TokenizeResult tokens, char quoteChar)
         {
-            if (!Matches(JPlusConstants.QuoteChar, JPlusConstants.AltQuoteChar))
+            if (!Matches(quoteChar))
                 return false;
 
             StringBuilder sb = new StringBuilder();
             Take();
-            while (!EndOfFile && !Matches(JPlusConstants.QuoteChar, JPlusConstants.AltQuoteChar))
+            while (!EndOfFile && !Matches(quoteChar))
             {
                 if (Matches(JPlusConstants.Escape))
                     sb.Append(PullEscapeSequence());
@@ -944,15 +959,17 @@ namespace Lizoc.JsonPlus
         /// <summary>
         /// Retrieves a triple quoted <see cref="TokenType.LiteralValue"/> token from the tokenizer's current position.
         /// </summary>
-        /// <returns>A <see cref="TokenType.LiteralValue"/> token from the tokenizer's current position.</returns>
-        private bool PullTripleQuoted(TokenizeResult tokens)
+        /// <returns>
+        /// A <see cref="TokenType.LiteralValue"/> token from the tokenizer's current position.
+        /// </returns>
+        private bool PullTripleQuoted(TokenizeResult tokens, string quoteSequence)
         {
-            if (!Matches(JPlusConstants.TripleQuote, JPlusConstants.AltTripleQuote))
+            if (!Matches(quoteSequence))
                 return false;
 
             StringBuilder sb = new StringBuilder();
             Take(3);
-            while (!EndOfFile && !Matches(JPlusConstants.TripleQuote, JPlusConstants.AltTripleQuote))
+            while (!EndOfFile && !Matches(quoteSequence))
             {
                 if (Matches(JPlusConstants.Escape))
                     sb.Append(PullEscapeSequence());
