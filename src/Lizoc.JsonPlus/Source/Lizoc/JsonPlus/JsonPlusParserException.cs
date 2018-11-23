@@ -99,7 +99,7 @@ namespace Lizoc.JsonPlus
 
             if (tokenLocation != null)
             {
-                sb.Append(addComma ? RS.Comma : RS.At);
+                sb.Append(addComma ? RS.Comma : (RS.Space + RS.At));
                 sb.Append(string.Format(CultureInfo.InvariantCulture, RS.LineAndColumn, tokenLocation.Line, tokenLocation.Column));
             }
 
