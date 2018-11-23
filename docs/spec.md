@@ -55,22 +55,20 @@ Json+ is a superset of JSON.
 
 Project Goals
 -------------
-The primary goal is: keep JSON semantics (tree structure, set of types, and escaping), but make it more convenient for editing via a general purpose plain-text editor.
+The primary goal is simple: keep JSON as-is, but extends the grammer to make it more convenient to edit using any general purpose plain-text editor.
 
-The following features are desired:
+Since Json+ is a superset of JSON, all valid JSON works without modification in Json+.
 
-- less noisy/pedantic syntax
-- ability to reference value (set a value to another value)
+The extended grammer is designed with these goals:
+
+- makes Json+ easier to read, and faster to write
+- reduce repetition by referencing value
 - ability to write comments
+- ability to write multi-line string value.
 
-Implementation-wise, the format should have these properties:
+The Json+ parser is implemented to be flexible but deterministic. This means that the syntax is strict and will throw errors when it encounters invalid code.
 
-- a JSON superset, that is, all valid JSON should be valid and should result in the same in-memory data that a JSON parser would have produced.
-- be flexible but deterministic. It should be clear what's invalid, and invalid syntax should generate errors.
-- require minimal look-ahead; tokenization should only require looking at the next three characters (in order to find `//` comments; otherwise look-ahead will only require two characters).
-
-Making Json+ easier to edit necessarily means shifting more work to the parser. Therefore the parser cannot be expected to perform as quickly as JSON for large files. We recommend using 
-Json+ for writing short tree structure data that is less than 1MB. If performance is a concerning factor, use a regular JSON parser, or pre-process the Json+ file to JSON.
+For performance reasons, the grammer is designed in such a way that the parser requires minimal look-ahead. Tokenization should only require looking at a maximum of 3 characters (normally only 2 character). However, making Json+ easier to edit sometimes requires that we shift more work to the parser. Therefore, our Json+ parser implementation cannot be expected to perform as quickly as JSON for large files. We recommend using Json+ for writing short tree structure data that is less than 1MB. If performance is a concerning factor, use a regular JSON parser, or pre-process the Json+ file to JSON.
 
 
 Definitions
@@ -90,6 +88,24 @@ Much of this specification is defined with reference to JSON; you can find the J
 - files should be valid UTF-8
 - values in quotes `"` are strings (from here on, defined as "quoted string").
 - values support certain types: string, number, object, array, boolean, null
+
+### Alternate characters
+Json+ offers additional alternative substitutes for special characters and keywords in JSON syntax:
+|----------|-----------|---------------------|
+| JSON     | Json+     | Description         |
+|----------|-----------|---------------------|
+| `"`      | `'`       | Quoted string       |
+| `:`      | `=`       | Key-value separator |
+| `true`   | `yes`     | True boolean        |
+| `false`  | `no`      | False boolean       |
+|----------|-----------|---------------------|
+
+The above will be referred to in the sections below.
+
+### Additional types
+Json+ extends JSON types to include timespan and data size:
+- `timespan`: represents a period of time
+- `data size`: an integer with unit to represent data size (e.g. kilobyte, megabyte, etc.)
 
 ### Numbers
 Json+ supports all numbers in JSON, as well as `NaN`, `infinity`, `+infinity`, and `-infinity`.
@@ -175,13 +191,14 @@ The intermediate setting of `"foo"` to `null` prevents the object merge.
 
 ### Unquoted strings
 A sequence of characters outside of a quoted string is a string value if:
-- it does not contain "reserved characters": `$`, `"`, `{`, `}`, `[`, `]`, `:`, `=`, `,`, `+`, `#`, <code>&grave;</code>, `^`, `?`, `!`, `@`, `*`, `&`, `\`, or whitespace.
+- it does not contain "reserved characters": `$`, `"`, `'`, `{`, `}`, `[`, `]`, `:`, `=`, `,`, `+`, `#`, <code>&grave;</code>, `^`, `?`, `!`, `@`, `*`, `&`, `\`, or whitespace.
 - it does not contain the two-character string `//` (which starts a comment)  
-- its initial characters do not parse as `true`, `false`, `null`, or a number.
+- its initial characters do not parse as `true`, `false`, `yes`, `no`, `null`, or a number.
+- it does not parse as a timespan or data size unit
 
 Unquoted strings are used literally, they do not support any kind of escaping. Quoted strings may always be used as an alternative when you need to write a character that is not permitted in an unquoted string.
 
-`truefoo` parses as the boolean token `true` followed by the unquoted string `foo`. However, `footrue` parses as the unquoted string `footrue`. Similarly, `10.0bar` is the number `10.0` then the unquoted string `bar` but `bar10.0` is the unquoted string `bar10.0`. (In practice, this distinction doesn't matter much because of value concatenation; see later section.)
+`truefoo` parses as the boolean token `true` followed by the unquoted string `foo`. However, `footrue` parses as the unquoted string `footrue`. Similarly, `10.0bar` is the number `10.0` then the unquoted string `bar` but `bar10.0` is the unquoted string `bar10.0`. In practice, this distinction doesn't matter much because of value concatenation; see later section.
 
 In general, once an unquoted string begins, it continues until a reserved character or the two-character string `//` is encountered. Embedded (non-initial) booleans, nulls, and numbers are not recognized as such, they are part of the string.
 
@@ -191,8 +208,34 @@ Note that quoted JSON strings may not contain control characters (control charac
 
 Some of the "reserved characters" are reserved because they already have meaning in JSON or Json+, others are essentially reserved keywords to allow future extensions to this spec.
 
+### Quoted strings
+A string is quoted between two `"` characters on the same line. All characters between the quotes are interpreted literally, except for the following:
+- the character `"` must be represented by `\"`. This is in line with JSON syntax.
+- the character `\` must be represented by `\\`.
+- the character `'` _may_ be represented by `\'`.
+- the character `/` _may_ be represented by `\/'`.
+- line feed must be represented by `\n`.
+- carriage return must be represented by `\r`.
+- tabulate must be represented by `\t`.
+- bell must be represented by `\b`.
+- vertical tabulate must be represented by `\f`.
+- unicode character can be referenced by its 4 digit hexadecimal code: `\u0xABCD` (where ABCD is the hexadecimal code)
+
+The alternative quote character `'` may be used in place of `"`. The rules are similar to using `"`, with this difference:
+- the character `"` _may_ be represented by `\"`.
+- the character `'` must be represented by `\'`.
+
 ### Multi-line strings
 Multi-line strings are similar to Python or Scala, using triple quotes. If the three-character sequence `"""` appears, then all unicode characters until a closing `"""` sequence are used unmodified to create a string value. Newlines and whitespace receive no special treatment. Unlike Scala, and unlike JSON quoted strings, Unicode escapes are not interpreted in triple-quoted strings.
+
+Similar to quoted string, you can use `'''` in place of `"""`.
+
+Escape character rules are also similar to quoted string, except:
+- the character `"` _may_ be represented by `\"`.
+- the character `'` _may_ be represented by `\'`.
+- line feed _may_ be represented by `\n`, or an actual line feed character.
+- carriage return _may_ be represented by `\r`, or an actual line feed character.
+- tabulate _may_ be represented by `\t`, or an actual tabulate character.
 
 In Python, `"""foo""""` is a syntax error (a triple-quoted string followed by a dangling unbalanced quote). In Scala, it is a four-character string `foo"`. Json+ works like Scala; any sequence of at least three quotes ends the multi-line string, and any "extra" quotes are part of the string.
 
@@ -233,7 +276,6 @@ For purposes of string value concatenation, non-string values are converted to s
 - it is invalid for arrays or objects to appear in a string value concatenation.
 
 A single value is never converted to a string. That is, it would be wrong to value concatenate `true` by itself; that should be parsed as a boolean-typed value. Only `true foo` (`true` with another simple value on the same line) should be parsed as a value concatenation and converted to a string.
-
 
 ### Array and object concatenation
 Arrays can be concatenated with arrays, and objects with objects, but it is an error if they are mixed.
@@ -318,13 +360,16 @@ If this gets confusing, just use commas. The concatenation behavior is useful ra
 
 Non-newline whitespace is never an item or member separator.
 
-
 ### Path expressions
 Path expressions are used to write out a path through the object graph. They appear in two places; in substitutions, like `${foo.bar}`, and as the keys in objects like `{ foo.bar : 42 }`.
 
 Path expressions are syntactically identical to a value concatenation, except that they may not contain substitutions. This means that you can't nest substitutions inside other substitutions, and you can't have substitutions in keys.
 
 When concatenating the path expression, any `.` characters outside quoted strings are understood as path separators, while inside quoted strings `.` has no special meaning. So `foo.bar."hello.world"` would be a path with three keys, looking up key `foo`, key `bar`, then key `hello.world`.
+
+You can use single quote instead of double quote: `foo.bar.'hello.world'` is also valid.
+
+Character escape rules are the same as that for quoted strings.
 
 The main tricky point is that `.` characters in numbers do count as a path separator. When dealing with a number as part of a path expression, it's essential to retain the _original_ string representation of the number as it appeared in the file (rather than converting it back to a string with a generic number-to-string library function).
 
@@ -820,6 +865,42 @@ This conversion should:
  - sort by the integer value of each key and then build the array; if the integer keys are "0" and "2" then the resulting array would have indices "0" and "1", i.e. missing indices in the object are eliminated.
 
 
+Timespan format
+---------------
+A number followed by any of the following will be interpreted as a timespan:
+ - `ns` for nanosecond
+ - `us` for microsecond
+ - `ms` for millisecond
+ - `s` for second
+ - `m` for minute
+ - `h` for hour
+ - `d` for day
+
+The supported unit strings for duration are case sensitive and must be lowercase. There must not be any whitespace between the number and the unit.
+
+
+Size in bytes format
+--------------------
+A number followed by any of the following will be interpreted as an integer with data size units:
+
+ - `kB` for kilobyte (powers of 10)
+ - `mB` for megabyte (powers of 10)
+ - `gB` for gigabyte (powers of 10)
+ - `tB` for terabyte (powers of 10)
+ - `pB` for petabyte (powers of 10)
+ - `kb` for kibibyte (powers of 2)
+ - `mb` for mebibyte (powers of 2)
+ - `gb` for gibibyte (powers of 2)
+ - `tb` for tebibyte (powers of 2)
+ - `pb` for pebibyte (powers of 2)
+
+The two-letter unit strings is case sensitive. There must not be any whitespace between the number and the unit.
+
+There is an unfortunate nightmare with size-in-bytes units, that they may be in powers or two or powers of ten. The approach defined by standards bodies appears to differ from common usage, such that following the standard leads to people being confused. Worse, common usage varies based on whether people are talking about RAM or disk sizes, and various existing operating systems and apps do all kinds of different things. See http://en.wikipedia.org/wiki/Binary_prefix#Deviation_between_powers_of_1024_and_powers_of_1000 for examples. It appears impossible to sort this out without causing confusion for someone sometime.
+
+Note: any value in zetta/zebi or yotta/yobi will overflow a 64-bit integer, and of course large-enough values in any of the units may overflow. Most real-world APIs and apps will not support byte counts that overflow a 64-bit integer.
+
+
 MIME Type
 =========
 Use "application/jsonplus" for `Content-Type`.
@@ -850,73 +931,6 @@ The following type conversions should NOT be performed:
  - anything to array, with the exception of numerically-indexed object to array
 
 Converting objects and arrays to and from strings is tempting, but in practical situations raises thorny issues of quoting and double-escaping.
-
-
-Units format
-------------
-Implementations may wish to support interpreting a value with some family of units, such as time units or memory size units: `10ms` or `512kb`. Json+ does not have an extensible type system and there is no way to add a "duration" type. However, for example, if an application asks for milliseconds, the implementation can try to interpret a value as a milliseconds value.
-
-If an API supports this, for each family of units it should define a default unit in the family. For example, the family of duration units might default to milliseconds (see below for details on durations). The implementation should then interpret values as follows:
-
- - if the value is a number, it is taken to be a number in the default unit.  
- - if the value is a string, it is taken to be this sequence:
-   - optional whitespace      
-   - a number      
-   - optional whitespace      
-   - an optional unit name consisting only of letters (letters are the unicode `L*` categories, Java `isLetter()`)      
-   - optional whitespace
-
-If a string value has no unit name, then it should be interpreted with the default unit, as if it were a number. If a string value has a unit name, that name of course specifies the value's interpretation.
-
-
-Duration format
----------------
-Implementations may wish to support various time units.
-
-This can use the general "units format" described above; bare numbers are taken to be in milliseconds already, while strings are parsed as a number plus an optional unit string.
-
-The supported unit strings for duration are case sensitive and must be lowercase. Exactly these strings are supported:
-
- - `ns`, `nano`, `nanos`, `nanosecond`, `nanoseconds`  
- - `us`, `micro`, `micros`, `microsecond`, `microseconds`  
- - `ms`, `milli`, `millis`, `millisecond`, `milliseconds`  
- - `s`, `second`, `seconds`  
- - `m`, `minute`, `minutes`  
- - `h`, `hour`, `hours`  
- - `d`, `day`, `days`
-
-
-Size in bytes format
---------------------
-Implementations may wish to support a unit for representing byte size.
-
-This can use the general "units format" described above; bare numbers are taken to be in bytes already, while strings are parsed as a number plus an optional unit string.
-
-The two-letter unit strings is case sensitive (note: duration units are always lowercase, so this convention is specific to size units).
-
-There is an unfortunate nightmare with size-in-bytes units, that they may be in powers or two or powers of ten. The approach defined by standards bodies appears to differ from common usage, such that following the standard leads to people being confused. Worse, common usage varies based on whether people are talking about RAM or disk sizes, and various existing operating systems and apps do all kinds of different things. See http://en.wikipedia.org/wiki/Binary_prefix#Deviation_between_powers_of_1024_and_powers_of_1000 for examples. It appears impossible to sort this out without causing confusion for someone sometime.
-
-For single bytes, exactly these strings are supported:
-
- - `byte`, `bytes`
-
-For powers of ten, exactly these strings are supported:
-
- - `kB`, `kilobyte`, `kilobytes`  
- - `mB`, `megabyte`, `megabytes`  
- - `gB`, `gigabyte`, `gigabytes`  
- - `tB`, `terabyte`, `terabytes`  
- - `pB`, `petabyte`, `petabytes`  
-
-For powers of two, exactly these strings are supported:
-
- - `kb`, `kibibyte`, `kibibytes`  
- - `mb`, `mebibyte`, `mebibytes`  
- - `gb`, `gibibyte`, `gibibytes`  
- - `tb`, `tebibyte`, `tebibytes`  
- - `pb`, `pebibyte`, `pebibytes`  
-
-Note: any value in zetta/zebi or yotta/yobi will overflow a 64-bit integer, and of course large-enough values in any of the units may overflow. Most real-world APIs and apps will not support byte counts that overflow a 64-bit integer.
 
 
 Object merging and file merging
