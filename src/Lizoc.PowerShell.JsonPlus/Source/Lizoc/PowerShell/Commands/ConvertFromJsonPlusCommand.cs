@@ -220,7 +220,7 @@ namespace Lizoc.PowerShell.Commands
             }
 
             if (jv.Type != JsonPlusType.Object)
-                throw new ArgumentException("Internal error: PopulateJPlusObject encountered a value that is not an object.");
+                throw new ArgumentException(string.Format(RS.InternalErrorStopCode, "POPULATE_NOT_OBJECT"));
 
             PSObject psObject = new PSObject();
 
@@ -270,32 +270,21 @@ namespace Lizoc.PowerShell.Commands
             error = null;
 
             if (jv.Type != JsonPlusType.Literal)
-                throw new ArgumentException("Internal error: Non-leaf object has entered `PopulateJPlusLeaf`.");
+                throw new ArgumentException(string.Format(RS.InternalErrorStopCode, "POPULATE_NOT_LITERAL"));
 
             // node could could contain substitution, or unit based value like 
             // timespan or data size
-            if (jv.Count > 1)
-            {
-                // if contains substitution, always cast to string
-                bool containsSubstitution = false;
-                foreach (IJsonPlusNode node in jv)
-                {
-                    if (node is JsonPlusSubstitution)
-                    {
-                        containsSubstitution = true;
-                        break;
-                    }
-                }
+            JsonPlusLiteralType literalType = jv.GetLiteralType();
 
-                if (!containsSubstitution)
-                {
+            switch (literalType)
+            {
+                case JsonPlusLiteralType.Null:
+                    return null;
+
+                case JsonPlusLiteralType.Boolean:
                     try
                     {
-                        return jv.GetByteSize();
-                    }
-                    catch (FormatException)
-                    {
-                        // do nothing
+                        return jv.GetBoolean();
                     }
                     catch (Exception e)
                     {
@@ -303,63 +292,53 @@ namespace Lizoc.PowerShell.Commands
                         return null;
                     }
 
+                case JsonPlusLiteralType.Integer:
+                case JsonPlusLiteralType.Hexadecimal:
+                case JsonPlusLiteralType.Octet:
+                    // octet and hex could be byte representation. try it first!
+                    if (literalType == JsonPlusLiteralType.Hexadecimal || 
+                        literalType == JsonPlusLiteralType.Octet)
+                    {
+                        try
+                        {
+                            return jv.GetByte();
+                        }
+                        catch (JsonPlusException e)
+                        {
+                            if (e.InnerException is OverflowException)
+                            {
+                                // do nothing
+                            }
+                            else
+                            {
+                                error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                                return null;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                            return null;
+                        }
+                    }
+
                     try
                     {
-                        return jv.GetTimeSpan();
-                    }
-                    catch (FormatException)
-                    {
-                        // do nothing
-                    }
-                    catch (Exception e)
-                    {
-                        error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
-                        return null;
-                    }
-                }
-
-                try
-                {
-                    return jv.GetString();
-                }
-                catch (Exception e)
-                {
-                    error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
-                    return null;
-                }
-            }
-
-            // node only contains 1 item, so it could only contain a keyword or string or number.
-            if (jv[0] is NullValue)
-            {
-                return null;
-            }
-            else if (jv[0] is BooleanValue)
-            {
-                try
-                {
-                    return jv.GetBoolean();
-                }
-                catch (Exception e)
-                {
-                    error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
-                    return null;
-                }
-            }
-            else if (jv[0] is IntegerValue || jv[0] is HexadecimalValue || jv[0] is OctetValue)
-            {
-                // try to cast hex or octet to byte first
-                if (jv[0] is HexadecimalValue || jv[0] is OctetValue)
-                {
-                    try
-                    {
-                        return jv.GetByte();
+                        return jv.GetInt32();
                     }
                     catch (JsonPlusException e)
                     {
                         if (e.InnerException is OverflowException)
                         {
-                            // do nothing.
+                            try
+                            {
+                                return jv.GetInt64();
+                            }
+                            catch (Exception e2)
+                            {
+                                error = new ErrorRecord(e2, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                                return null;
+                            }
                         }
                         else
                         {
@@ -372,81 +351,84 @@ namespace Lizoc.PowerShell.Commands
                         error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
                         return null;
                     }
-                }
 
-                try
-                {
-                    return jv.GetInt32();
-                }
-                catch (JsonPlusException e)
-                {
-                    if (e.InnerException is OverflowException)
+                case JsonPlusLiteralType.Decimal:
+                    try
                     {
-                        try
+                        return jv.GetDouble();
+                    }
+                    catch (JsonPlusException e)
+                    {
+                        if (e.InnerException is OverflowException)
                         {
-                            return jv.GetInt64();
+                            try
+                            {
+                                return jv.GetDecimal();
+                            }
+                            catch (Exception e2)
+                            {
+                                error = new ErrorRecord(e2, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                                return null;
+                            }
                         }
-                        catch (Exception e2)
+                        else
                         {
-                            error = new ErrorRecord(e2, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                            error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
                             return null;
                         }
+
                     }
-                    else
+                    catch (Exception e)
                     {
                         error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
                         return null;
                     }
-                }
-                catch (Exception e)
-                {
-                    error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
-                    return null;
-                }
-            }
-            else if (jv[0] is DecimalValue)
-            {
-                try
-                {
-                    return jv.GetDouble();
-                }
-                catch (JsonPlusException e)
-                {
-                    if (e.InnerException is OverflowException)
+
+                case JsonPlusLiteralType.TimeSpan:
+                    try
                     {
-                        try
-                        {
-                            return jv.GetDecimal();
-                        }
-                        catch (Exception e2)
-                        {
-                            error = new ErrorRecord(e2, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
-                            return null;
-                        }
+                        return jv.GetTimeSpan();
                     }
-                }
-                catch (Exception e)
-                {
-                    error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                    catch (Exception e)
+                    {
+                        error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                        return null;
+                    }
+
+
+                case JsonPlusLiteralType.ByteSize:
+                    try
+                    {
+                        return jv.GetByteSize();
+                    }
+                    catch (Exception e)
+                    {
+                        error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                        return null;
+                    }
+
+                case JsonPlusLiteralType.String:
+                case JsonPlusLiteralType.UnquotedString:
+                case JsonPlusLiteralType.QuotedString:
+                case JsonPlusLiteralType.TripleQuotedString:
+                case JsonPlusLiteralType.Whitespace:
+                    try
+                    {
+                        return jv.GetString();
+                    }
+                    catch (Exception e)
+                    {
+                        error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
+                        return null;
+                    }
+
+                default:
+                    error = new ErrorRecord(new JsonPlusException(string.Format(RS.JsonPlusUnsupportedType)), "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
                     return null;
-                }
-            }
-            else if (jv[0] is UnquotedStringValue || jv[0] is QuotedStringValue || 
-                jv[0] is TripleQuotedStringValue || jv[0] is WhitespaceValue)
-            {
-                try
-                {
-                    return jv.GetString();
-                }
-                catch (Exception e)
-                {
-                    error = new ErrorRecord(e, "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
-                    return null;
-                }
             }
 
-            error = new ErrorRecord(new JsonPlusException(string.Format(RS.JsonPlusUnsupportedType)), "BadJsonPlusLiteralValue", ErrorCategory.ParserError, null);
-            return null;
+            // this shouldn't happen
+            throw new ArgumentException(string.Format(RS.InternalErrorStopCode, "POPULATE_LITERAL_FALLTHROUGH"));
         }
 
         private object[] PopulateJPlusArray(List<IJsonPlusNode> jv, out ErrorRecord error)

@@ -142,6 +142,81 @@ namespace Lizoc.JsonPlus
             }
         }
 
+        /// <summary>
+        /// Returns the underlying <see cref="JsonPlusLiteralType"/> of a literal value.
+        /// </summary>
+        /// <exception cref="JsonPlusException">The <see cref="Type"/> property must be of type <see cref="JsonPlusType.Literal"/>.</exception>
+        /// <returns>
+        /// The underlying <see cref="JsonPlusLiteralType"/> of an instance of this <see cref="JsonPlusValue"/> which is a literal value.
+        /// </returns>
+        public virtual JsonPlusLiteralType GetLiteralType()
+        {
+            if (Type != JsonPlusType.Literal)
+                throw new JsonPlusException(RS.ExpectLiteralType);
+
+            if (Count > 1)
+            {
+                bool containsSubstitution = false;
+                foreach (IJsonPlusNode node in Children)
+                {
+                    if (node is JsonPlusSubstitution)
+                    {
+                        containsSubstitution = true;
+                        break;
+                    }
+                }
+
+                if (containsSubstitution)
+                    return JsonPlusLiteralType.String;
+
+                 if (IsTimeSpan())
+                    return JsonPlusLiteralType.TimeSpan;
+
+                 if (IsByteSize())
+                    return JsonPlusLiteralType.ByteSize;
+
+                return JsonPlusLiteralType.String;
+            }
+
+            if (Count == 0)
+                return JsonPlusLiteralType.Null;
+
+            // timespan and bytesize expressions will have at least 2 children, so here onwards node cannot be either.
+            IJsonPlusNode firstChild = Children[0];
+
+            if (firstChild is JsonPlusSubstitution)
+            {
+                JsonPlusValue substChild = ((JsonPlusSubstitution)firstChild).ResolvedValue;
+                if (substChild.Type != JsonPlusType.Literal)
+                    throw new JsonPlusException(string.Format(RS.InternalErrorStopCode, "ONLY_SUBST_TYPE_NOT_LITERAL"));
+
+                return substChild.GetLiteralType();
+            }
+
+            if (firstChild is NullValue)
+                return JsonPlusLiteralType.Null;
+            else if (firstChild is BooleanValue)
+                return JsonPlusLiteralType.Boolean;
+            else if (firstChild is DecimalValue)
+                return JsonPlusLiteralType.Decimal;
+            else if (firstChild is IntegerValue)
+                return JsonPlusLiteralType.Integer;
+            else if (firstChild is HexadecimalValue)
+                return JsonPlusLiteralType.Hexadecimal;
+            else if (firstChild is OctetValue)
+                return JsonPlusLiteralType.Octet;
+            else if (firstChild is UnquotedStringValue)
+                return JsonPlusLiteralType.UnquotedString;
+            else if (firstChild is QuotedStringValue)
+                return JsonPlusLiteralType.QuotedString;
+            else if (firstChild is TripleQuotedStringValue)
+                return JsonPlusLiteralType.TripleQuotedString;
+            else if (firstChild is WhitespaceValue)
+                return JsonPlusLiteralType.Whitespace;
+            else
+                throw new JsonPlusException(string.Format(RS.UnknownLiteralToken, firstChild.GetType().ToString()));
+        }
+
         /// <see cref="IJsonPlusNode.GetString()"/>
         public virtual string GetString()
         {
@@ -217,11 +292,11 @@ namespace Lizoc.JsonPlus
 
             switch (value)
             {
-                case "true":
-                case "yes":
+                case JPlusConstants.TrueKeyword:
+                case JPlusConstants.AltTrueKeyword:
                     return true;
-                case "false":
-                case "no":
+                case JPlusConstants.FalseKeyword:
+                case JPlusConstants.AltFalseKeyword:
                     return false;
                 default:
                     throw new NotSupportedException(string.Format(RS.BadBooleanName, value));
@@ -517,13 +592,16 @@ namespace Lizoc.JsonPlus
             return GetArray().Select(v => v.GetString()).ToList();
         }
 
-        /*
-        [Obsolete("Use GetTimeSpan instead")]
-        public TimeSpan GetMillisDuration(bool allowInfinite = true)
+        private bool IsTimeSpan(bool allowInfinite = true)
         {
-            return GetTimeSpan(allowInfinite);
+            string res = GetString();
+
+            if (allowInfinite && res.Equals(JPlusConstants.InfiniteTimeKeyword, StringComparison.Ordinal))
+                return true;
+
+            Match match = TimeSpanRegex.Match(res);
+            return match.Success;
         }
-        */
 
         /// <summary>
         /// Returns this value as a <see cref="TimeSpan"/>.
@@ -534,7 +612,7 @@ namespace Lizoc.JsonPlus
         {
             string res = GetString();
 
-            if (allowInfinite && res.Equals(JPlusConstants.InfiniteTimeKeyword, StringComparison.OrdinalIgnoreCase))
+            if (allowInfinite && res.Equals(JPlusConstants.InfiniteTimeKeyword, StringComparison.Ordinal))
                 return Timeout.InfiniteTimeSpan;
 
             // do a regex match
@@ -594,6 +672,14 @@ namespace Lizoc.JsonPlus
                 throw new FormatException(string.Format(RS.ExpectPositiveNumber, value));
 
             return value;
+        }
+
+        private bool IsByteSize()
+        {
+            string res = GetString();
+
+            Match match = ByteSizeRegex.Match(res);
+            return match.Success;
         }
 
         /// <summary>
@@ -710,7 +796,7 @@ namespace Lizoc.JsonPlus
                 throw JsonPlusParserException.Create(sub, sub.Path, string.Format(RS.SubstitutionSiblingTypeMismatch, Type, child.Type));
             }
 
-            ((JsonPlusObjectMember) Parent).ResolveValue(this);
+            ((JsonPlusObjectMember)Parent).ResolveValue(this);
         }
 
         /// <summary>

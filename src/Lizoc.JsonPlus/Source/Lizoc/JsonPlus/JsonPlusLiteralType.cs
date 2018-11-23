@@ -54,5 +54,20 @@
         /// A decimal number.
         /// </summary>
         Decimal,
+
+        /// <summary>
+        /// An expression that represents time span.
+        /// </summary>
+        TimeSpan,
+
+        /// <summary>
+        /// A number with data size unit.
+        /// </summary>
+        ByteSize,
+
+        /// <summary>
+        /// A string that may or may not be quoted.
+        /// </summary>
+        String
     }
 }
