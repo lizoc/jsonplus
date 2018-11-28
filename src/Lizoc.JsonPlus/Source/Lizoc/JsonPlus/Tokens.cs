@@ -174,7 +174,7 @@ namespace Lizoc.JsonPlus
         /// </summary>
         /// <param name="type">The type of token to associate with.</param>
         /// <param name="source">The <see cref="ISourceLocation"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
-        public Token(TokenType type, IHoconLineInfo source) 
+        public Token(TokenType type, ISourceLocation source) 
             : this(null, type, TokenLiteralType.None, source)
         {
         }

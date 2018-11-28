@@ -12,7 +12,7 @@ namespace Lizoc.JsonPlus.Tests
 {
     public class WhitespaceDef
     {
-        // These are all the characters defined as whitespace by Hocon spec 
+        // These are all the characters defined as whitespace by Json+ spec 
         // Unicode space separator (Zs category)
         public static readonly char Space = '\u0020';
         public static readonly char NoBreakSpace = '\u00A0';

@@ -24,7 +24,7 @@ namespace Lizoc.JsonPlus.Tests
         /// The = character can be used anywhere JSON allows :, i.e. to separate keys from values.
         /// </summary>
         [Fact]
-        public void CanParseHoconWithEqualsOrColonSeparator()
+        public void CanParseJsonPlusWithEqualsOrColonSeparator()
         {
             var source = @"
 root = {
@@ -69,7 +69,7 @@ root_2 : 1234
         /// If a key is followed by {, the : or = may be omitted. So "foo" {} means "foo" : {}
         /// </summary>
         [Fact]
-        public void CanParseHoconWithSeparatorForObjectFieldAssignment()
+        public void CanParseJsonPlusWithSeparatorForObjectFieldAssignment()
         {
             var source = @"
 root {

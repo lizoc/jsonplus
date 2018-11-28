@@ -24,7 +24,7 @@ namespace Lizoc.JsonPlus.Tests
         }
 
         [Fact]
-        public void CanUnwrapSubConfig() //undefined behavior in spec, this does not behave the same as JVM hocon.
+        public void CanUnwrapSubConfig() //undefined behavior in spec
         {
             var source = @"
 a {
@@ -101,7 +101,7 @@ a {
             Assert.Empty(res);
         }
 
-        //Added tests to conform to the HOCON spec https://github.com/typesafehub/config/blob/master/HOCON.md
+        // Added tests to conform to the spec
         [Fact]
         public void CanUsePathsAsKeys_3_14()
         {
