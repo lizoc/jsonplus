@@ -325,7 +325,10 @@ namespace Lizoc.JsonPlus
                     return result;
 
                 child.EnsureMemberIsObject();
-                currentObject = child.GetObject();
+
+                // cannot use child.GetObject() because it would return a merged object, which 
+                // breaks autoref with the parent object
+                currentObject = child.Value.GetObject();
             }
         }
 

@@ -119,5 +119,18 @@ foo
             Assert.Equal(43, root.GetInt32("foo.b"));
         }
 
+        [Fact]
+        public void ObjectCanMixBraceAndDotSyntax()
+        {
+            var source = @"
+    foo { x = 1 }
+    foo { y = 2 }
+    foo.z = 32
+";
+            var root = JsonPlusParser.Parse(source);
+            Assert.Equal(1, root.GetInt32("foo.x"));
+            Assert.Equal(2, root.GetInt32("foo.y"));
+            Assert.Equal(32, root.GetInt32("foo.z"));
+        }
     }
 }
