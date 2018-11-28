@@ -1,4 +1,12 @@
-﻿namespace Lizoc.JsonPlus
+﻿// -----------------------------------------------------------------------
+// <copyright file="ISourceLocation.cs" repo="Json+">
+//     Copyright (C) 2018 Lizoc Inc. <http://www.lizoc.com>
+//     The source code documented in this file is subject to the MIT license.
+//     See the LICENSE file in the project root for more information.
+// </copyright>
+// -----------------------------------------------------------------------
+ 
+namespace Lizoc.JsonPlus
 {
     /// <summary>
     /// Interface class for any class that contains information on its location within a Json+ source code.
