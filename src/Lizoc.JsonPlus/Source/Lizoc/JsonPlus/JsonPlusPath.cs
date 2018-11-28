@@ -43,11 +43,30 @@ namespace Lizoc.JsonPlus
         }
 
         /// <summary>
-        /// Gets the Json+ query path expression. #todo
+        /// Gets the Json+ query path expression.
         /// </summary>
         public string Value
         {
-            get { return string.Join(".", this); }
+            get
+            {
+                if (IsEmpty)
+                    return string.Empty;
+
+                List<string> pathExpr = new List<string>();
+
+                foreach (string substr in this)
+                {
+                    // path expressions does not support control chars #todo
+                    if (substr.NeedTripleQuotes())
+                        throw new JsonPlusParserException("RS.PathCannotContainNewLine");
+
+                    pathExpr.Add((substr.Contains('.') || substr.ContainsJsonPlusWhitespaceExceptNewLine()) 
+                        ? substr.AddQuotes() 
+                        : substr.AddQuotesIfRequired());
+                }
+
+                return string.Join(".", pathExpr);
+            }
         }
 
         /// <summary>

@@ -61,6 +61,28 @@ namespace Lizoc.JsonPlus
             return JPlusConstants.WhitespaceExceptNewLine.Contains(c);
         }
 
+        public static bool ContainsJsonPlusWhitespaceExceptNewLine(this string s)
+        {
+            foreach (char c in s)
+            {
+                if (c.IsJsonPlusWhitespaceExceptNewLine())
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool ContainsJsonPlusWhitespace(this string s)
+        {
+            foreach (char c in s)
+            {
+                if (c.IsJsonPlusWhitespace())
+                    return true;
+            }
+
+            return false;
+        }
+
         public static bool IsDigit(this char c)
         {
             return JPlusConstants.AllowedDigitChars.Contains(c);
@@ -78,11 +100,21 @@ namespace Lizoc.JsonPlus
 
         public static string AddQuotesIfRequired(this string s)
         {
-            return s.NeedTripleQuotes() 
-                ? (JPlusConstants.TripleQuote + s + JPlusConstants.TripleQuote)
-                : s.NeedQuotes() 
-                    ? (JPlusConstants.QuoteChar.ToString() + s + JPlusConstants.QuoteChar.ToString()) 
-                    : s;
+            return s.NeedTripleQuotes() ? (JPlusConstants.TripleQuote + s + JPlusConstants.TripleQuote)
+                : s.NeedQuotes() ? AddQuotes(s) 
+                : s;
+        }
+
+        public static string AddQuotes(this string s)
+        {
+            if (s.Contains(JPlusConstants.QuoteChar))
+            {
+                return JPlusConstants.QuoteChar.ToString() +
+                    s.Replace(JPlusConstants.QuoteChar.ToString(), JPlusConstants.Escape + JPlusConstants.QuoteChar.ToString()) +
+                    JPlusConstants.QuoteChar.ToString();
+            }
+
+            return JPlusConstants.QuoteChar.ToString() + s + JPlusConstants.QuoteChar.ToString();
         }
 
         public static bool Contains(this string s, char c)
