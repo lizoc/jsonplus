@@ -120,7 +120,7 @@ namespace Lizoc.JsonPlus.Tests
         }
 
         [Fact]
-        public void CanParseHocon()
+        public void CanParseJsonPlus()
         {
             var source = @"
 root {
@@ -167,7 +167,7 @@ root_2 = 1234
         }
 
         [Fact]
-        public void CanParseHoconWithRootBraces()
+        public void CanParseJsonPlusWithRootBraces()
         {
             var source = @"
 {
@@ -215,7 +215,7 @@ root_2 = 1234
         }
 
         /// <summary>
-        /// A HOCON file is invalid if it omits the opening { but still has a closing }
+        /// A Json+ file is invalid if it omits the opening { but still has a closing }
         /// the curly braces must be balanced.
         /// </summary>
         [Fact]
