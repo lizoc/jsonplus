@@ -65,7 +65,8 @@ namespace Lizoc.JsonPlus
 
         internal JsonPlusObjectMember ParentMember
         {
-            get  {
+            get
+            {
                 IJsonPlusNode p = Parent;
                 while (p != null && !(p is JsonPlusObjectMember))
                 {
@@ -73,6 +74,27 @@ namespace Lizoc.JsonPlus
                 }
                 return p as JsonPlusObjectMember;
             }
+        }
+
+        internal JsonPlusPath GetMemberPath()
+        {
+            return GetMemberPath(ParentMember, null);
+        }
+
+        private JsonPlusPath GetMemberPath(JsonPlusObjectMember member, JsonPlusPath subPath)
+        {
+            if (member.ParentMember == null && subPath == null)
+                return new JsonPlusPath(new string[] { member.Key });
+
+            if (subPath == null)
+                return GetMemberPath(member.ParentMember, new JsonPlusPath(new string[] { member.Key }));
+
+            subPath.Add(member.Key);
+
+            if (member.ParentMember == null)
+                return subPath;
+            
+            return GetMemberPath(member.ParentMember, subPath);
         }
 
         /// <summary>
@@ -174,7 +196,7 @@ namespace Lizoc.JsonPlus
                 return true;
 
             if (other is JsonPlusSubstitution sub)
-                return Path == sub.Path;
+                return (Path == sub.Path) && (GetMemberPath() == sub.GetMemberPath());
 
             return !(_resolvedValue is null) && _resolvedValue.Equals(other);
         }

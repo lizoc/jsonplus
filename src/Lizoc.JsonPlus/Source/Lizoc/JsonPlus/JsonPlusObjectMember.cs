@@ -85,6 +85,30 @@ namespace Lizoc.JsonPlus
             }
         }
 
+        internal JsonPlusPath GetMemberPath()
+        {
+            if (ParentMember == null)
+                return Path;
+
+            return GetMemberPath(ParentMember, null);
+        }
+
+        private JsonPlusPath GetMemberPath(JsonPlusObjectMember member, JsonPlusPath subPath)
+        {
+            if (member.ParentMember == null && subPath == null)
+                return new JsonPlusPath(new string[] { member.Key });
+
+            if (subPath == null)
+                return GetMemberPath(member.ParentMember, new JsonPlusPath(new string[] { member.Key }));
+
+            subPath.Add(member.Key);
+
+            if (member.ParentMember == null)
+                return subPath;
+
+            return GetMemberPath(member.ParentMember, subPath);
+        }
+
         /// <summary>
         /// Returns true if there are old values stored.
         /// </summary>

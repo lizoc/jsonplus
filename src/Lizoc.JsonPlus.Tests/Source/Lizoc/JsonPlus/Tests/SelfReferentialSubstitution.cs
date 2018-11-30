@@ -112,7 +112,7 @@ foo : { a : 1 }
         }
 
         /// <summary>
-        /// The optional substitution syntax ${?foo} does not create a cycle
+        /// An unresolved substitution is ignored if the key is later assigned to a resolvable value.
         /// </summary>
         [Fact]
         public void HiddenSubstitutionShouldNeverBeEvaluated()
@@ -134,6 +134,15 @@ foo : 42";
         [Fact]
         public void PlusEqualOperatorShouldExpandToSelfReferencingArrayConcatenation()
         {
+            var source1 = @"
+a = [ 1, 2 ]
+a += 3
+a += [4, 5]
+";
+
+            var root1 = JsonPlusParser.Parse(source1);
+            Assert.True(new[] { 1, 2, 3, 4, 5 }.SequenceEqual(root1.GetInt32List("a")));
+
             var source = @"
 a = [ 1, 2 ]
 a += 3
@@ -144,7 +153,7 @@ b = [ 4, 5 ]
             JsonPlusRoot root = null;
             var ex = Record.Exception(() => root = JsonPlusParser.Parse(source));
             Assert.Null(ex);
-            Assert.True( new []{1, 2, 3, 4, 5}.SequenceEqual(root.GetInt32List("a")) );
+            Assert.True(new [] {1, 2, 3, 4, 5}.SequenceEqual(root.GetInt32List("a")));
         }
 
         /// <summary>

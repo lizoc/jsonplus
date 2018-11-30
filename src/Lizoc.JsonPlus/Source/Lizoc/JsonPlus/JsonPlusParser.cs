@@ -143,7 +143,7 @@ namespace Lizoc.JsonPlus
             JsonPlusObjectMember subField = sub.ParentMember;
 
             // first case, this substitution is a direct self-reference
-            if (sub.Path == subField.Path)
+            if (sub.Path == sub.GetMemberPath())
             {
                 IJsonPlusNode parent = sub.Parent;
                 while (parent is JsonPlusValue)
@@ -159,13 +159,17 @@ namespace Lizoc.JsonPlus
                 return subField.OlderValueThan(sub);
             }
 
+            // need to recursively get full path
+            JsonPlusPath fieldPath = subField.GetMemberPath();
+
             // second case, the substitution references a field child in the past
-            if (sub.Path.IsChildPathOf(subField.Path))
+            if (sub.Path.IsChildPathOf(fieldPath))
             {
                 JsonPlusValue olderValue = subField.OlderValueThan(sub);
-                if (olderValue.Type == JsonPlusType.Object)
+                if ((olderValue != null) && 
+                    (olderValue.Type == JsonPlusType.Object))
                 {
-                    int difLength = sub.Path.Count - subField.Path.Count;
+                    int difLength = sub.Path.Count - fieldPath.Count;
                     JsonPlusPath deltaPath = sub.Path.SubPath(sub.Path.Count - difLength, difLength);
 
                     JsonPlusObject olderObject = olderValue.GetObject();
@@ -175,7 +179,7 @@ namespace Lizoc.JsonPlus
             }
 
             // Detect invalid parent-referencing substitution
-            if (subField.Path.IsChildPathOf(sub.Path))
+            if (fieldPath.IsChildPathOf(sub.Path))
                 throw new JsonPlusException(RS.SubstitutionRefDirectParentError);
 
             // Detect invalid cyclic reference loop
@@ -374,7 +378,7 @@ namespace Lizoc.JsonPlus
                         break;
 
                     case TokenType.LiteralValue:
-                        if(_tokens.Current.IsNonSignificant())
+                        if (_tokens.Current.IsNonSignificant())
                             ConsumeWhitespace();
                         if (_tokens.Current.Type != TokenType.LiteralValue)
                             break;
@@ -391,6 +395,7 @@ namespace Lizoc.JsonPlus
 
                         parsing = parenthesisCount > 0;
                         break;
+
                     default:
                         throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.ErrAtUnexpectedToken, _tokens.Current.Type));
                 }
@@ -398,7 +403,7 @@ namespace Lizoc.JsonPlus
 
             if (parenthesisCount > 0)
                 throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedToken, TokenType.CloseBracket, _tokens.Current.Type));
-
+            
             if (fileName == null)
                 throw JsonPlusParserException.Create(_tokens.Current, Path, RS.FileNameMissingInInclude);
 
@@ -423,7 +428,7 @@ namespace Lizoc.JsonPlus
                 throw JsonPlusParserException.Create(includeToken, Path, string.Format(RS.IncludeMergeTypeMismatch, owner.Type, includeRoot.Value.Type));
             }
 
-            //fixup the substitution, add the current path as a prefix to the substitution path
+            // fixup the substitution, add the current path as a prefix to the substitution path
             foreach (JsonPlusSubstitution substitution in includeRoot.Substitutions)
             {
                 substitution.Path.InsertRange(0, Path);
@@ -618,7 +623,6 @@ namespace Lizoc.JsonPlus
             if (pathDelta == null || pathDelta.Count == 0)
                 throw JsonPlusParserException.Create(_tokens.Current, Path, RS.ObjectMemberPathUnspecified);
 
-
             List<JsonPlusObjectMember> childInPath = owner.TraversePath(pathDelta);
 
             Path.AddRange(pathDelta);
@@ -732,29 +736,29 @@ namespace Lizoc.JsonPlus
             return value;
         }
 
-        private JsonPlusArray ParseSelfAssignArray(IJsonPlusNode owner)
+        private IJsonPlusNode ParseSelfAssignArray(IJsonPlusNode owner)
         {
             // sanity check
             if (_tokens.Current.Type != TokenType.SelfAssignment)
                 throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedTokenInArray, TokenType.SelfAssignment, _tokens.Current.Type));
 
-            JsonPlusArray currentArray = new JsonPlusArray(owner);
-
             // consume += operator token
             ConsumeWhitelines();
+
+            JsonPlusArray currentArray = new JsonPlusArray(owner);
 
             switch (_tokens.Current.Type)
             {
                 case TokenType.Include:
+                    // #todo
                     currentArray.Add(ParseInclude(currentArray));
                     break;
 
                 case TokenType.StartOfArray:
-                    // Array inside of arrays are parsed as values because it can be value concatenated with another array.
-                    currentArray.Add(ParseValue(currentArray));
-                    break;
+                    return ParseArray(owner);
 
                 case TokenType.StartOfObject:
+                    // #todo
                     currentArray.Add(ParseObject(currentArray));
                     break;
 
@@ -765,17 +769,16 @@ namespace Lizoc.JsonPlus
                         break;
 
                     currentArray.Add(ParseValue(currentArray));
-                    break;
+                    return currentArray;
 
                 case TokenType.OptionalSubstitution:
                 case TokenType.Substitution:
                     JsonPlusPath pointerPath = JsonPlusPath.Parse(_tokens.Current.Value);
-                    JsonPlusSubstitution sub = new JsonPlusSubstitution(currentArray, pointerPath, _tokens.Current,
+                    JsonPlusSubstitution sub = new JsonPlusSubstitution(owner, pointerPath, _tokens.Current,
                         _tokens.Current.Type == TokenType.Substitution);
                     _substitutions.Add(sub);
-                    currentArray.Add(sub);
                     _tokens.Next();
-                    break;
+                    return sub;
 
                 default:
                     throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedTokenInArray, TokenType.EndOfArray, _tokens.Current.Type));
@@ -840,7 +843,7 @@ namespace Lizoc.JsonPlus
 
                     case TokenType.LiteralValue:
                         if (_tokens.Current.IsNonSignificant())
-                            ConsumeWhitelines();
+                            ConsumeWhitespace();
                         if (_tokens.Current.Type != TokenType.LiteralValue)
                             break;
 
@@ -865,12 +868,8 @@ namespace Lizoc.JsonPlus
                                     _tokens.Current.Type));
                         }
 
-                        JsonPlusPath pointerPath = JsonPlusPath.Parse(_tokens.Current.Value);
-                        JsonPlusSubstitution sub = new JsonPlusSubstitution(currentArray, pointerPath, _tokens.Current,
-                            _tokens.Current.Type == TokenType.Substitution);
-                        _substitutions.Add(sub);
-                        lastValue = sub;
-                        _tokens.Next();
+                        lastValue = ParseValue(currentArray);
+
                         break;
 
                     case TokenType.Comment:
@@ -881,18 +880,7 @@ namespace Lizoc.JsonPlus
                             break;
                         }
 
-                        switch (lastValue.Type)
-                        {
-                            case JsonPlusType.Array:
-                                currentArray.Add(lastValue);
-                                break;
-                            case JsonPlusType.Object:
-                                currentArray.Add((JsonPlusObject)lastValue);
-                                break;
-                            default:
-                                currentArray.Add((JsonPlusValue)lastValue);
-                                break;
-                        }
+                        currentArray.Add(lastValue);
                         lastValue = null;
                         ConsumeWhitelines();
                         break;
@@ -901,18 +889,7 @@ namespace Lizoc.JsonPlus
                         if (lastValue == null)
                             throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.BadArrayType, _tokens.Current.Type));
 
-                        switch (lastValue.Type)
-                        {
-                            case JsonPlusType.Array:
-                                currentArray.Add(lastValue);
-                                break;
-                            case JsonPlusType.Object:
-                                currentArray.Add((JsonPlusObject)lastValue);
-                                break;
-                            default:
-                                currentArray.Add(lastValue);
-                                break;
-                        }
+                        currentArray.Add(lastValue);
                         lastValue = null;
                         ConsumeWhitelines();
                         break;
@@ -920,18 +897,7 @@ namespace Lizoc.JsonPlus
                     case TokenType.EndOfArray:
                         if (lastValue != null)
                         {
-                            switch (lastValue.Type)
-                            {
-                                case JsonPlusType.Array:
-                                    currentArray.Add(lastValue);
-                                    break;
-                                case JsonPlusType.Object:
-                                    currentArray.Add((JsonPlusObject)lastValue);
-                                    break;
-                                default:
-                                    currentArray.Add((JsonPlusValue)lastValue);
-                                    break;
-                            }
+                            currentArray.Add(lastValue);
                             lastValue = null;
                         }
                         parsing = false;

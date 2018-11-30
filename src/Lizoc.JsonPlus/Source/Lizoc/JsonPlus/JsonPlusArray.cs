@@ -80,8 +80,9 @@ namespace Lizoc.JsonPlus
                         break;
 
                     case JsonPlusSubstitution sub:
+                        // #todo
                         if (sub.ResolvedValue != null)
-                            result.AddRange(sub.ResolvedValue.GetArray());
+                            result.AddRange(sub.ResolvedValue.GetValue());
                         break;
 
                     case JsonPlusObject obj:
@@ -112,11 +113,13 @@ namespace Lizoc.JsonPlus
                 Remove(sub);
                 return;
             }
+        }
 
-            if (sub.Type != JsonPlusType.Array)
+        internal void ResolveValue(JsonPlusValue child)
+        {
+            if (child.Count == 0)
             {
-                throw JsonPlusParserException.Create(sub, sub.Path, 
-                    string.Format(RS.SubstitutionTypeMismatch, Type, sub.Type));
+                Remove(child);
             }
         }
 

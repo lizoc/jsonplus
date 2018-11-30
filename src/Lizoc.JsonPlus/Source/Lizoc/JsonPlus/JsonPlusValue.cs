@@ -407,7 +407,7 @@ namespace Lizoc.JsonPlus
         {
             string value = GetString();
 
-            if (value.StartsWith("0x"))
+            if (value != null && value.StartsWith("0x"))
             {
                 try
                 {
@@ -419,7 +419,7 @@ namespace Lizoc.JsonPlus
                 }
             }
 
-            if (value.StartsWith("0"))
+            if (value != null && value.StartsWith("0"))
             {
                 try
                 {
@@ -452,7 +452,7 @@ namespace Lizoc.JsonPlus
         {
             string value = GetString();
 
-            if (value.StartsWith("0x"))
+            if (value != null && value.StartsWith("0x"))
             {
                 try
                 {
@@ -464,7 +464,7 @@ namespace Lizoc.JsonPlus
                 }
             }
 
-            if (value.StartsWith("0"))
+            if (value != null && value.StartsWith("0"))
             {
                 try
                 {
@@ -497,7 +497,7 @@ namespace Lizoc.JsonPlus
         {
             string value = GetString();
 
-            if (value.StartsWith("0x"))
+            if (value != null && value.StartsWith("0x"))
             {
                 try
                 {
@@ -509,7 +509,7 @@ namespace Lizoc.JsonPlus
                 }
             }
 
-            if (value.StartsWith("0"))
+            if (value != null && value.StartsWith("0"))
             {
                 try
                 {
@@ -777,6 +777,13 @@ namespace Lizoc.JsonPlus
             {
                 JsonPlusSubstitution sub = (JsonPlusSubstitution)child;
                 throw JsonPlusParserException.Create(sub, sub.Path, string.Format(RS.SubstitutionSiblingTypeMismatch, Type, child.Type));
+            }
+
+            if (Parent is JsonPlusArray)
+            {
+                // #todo
+                ((JsonPlusArray)Parent).ResolveValue(this);
+                return;
             }
 
             ((JsonPlusObjectMember)Parent).ResolveValue(this);

@@ -613,5 +613,138 @@ baz = ${foo.""bar.da\""da""}
             Assert.Equal(1, root.GetInt32("a.b"));
             Assert.Equal("1foo", root.GetString("a.c"));
         }
+
+        [Fact]
+        public void ArrayItemSupportSubstitution()
+        {
+            var source = @"
+    foo = hello
+    bar = [${foo}, world${foo}, ${foo}world]
+";
+            var root = JsonPlusParser.Parse(source);
+            var barValue = root.GetStringList("bar");
+            Assert.Equal("hello", barValue[0]);
+            Assert.Equal("worldhello", barValue[1]);
+            Assert.Equal("helloworld", barValue[2]);
+
+        }
+
+        [Fact]
+        public void ArrayItemSupportObjectSubstitution()
+        {
+            /*
+            var source = @"
+    foo {
+        x = 123
+    }
+    bar = ${foo}{ y = 456 }
+";
+            var root = JsonPlusParser.Parse(source);
+            Assert.Equal(123, root.GetInt32("bar.x"));
+            Assert.Equal(456, root.GetInt32("bar.y"));
+            */
+
+
+
+            var source = @"
+    foo {
+        x = 123
+    }
+    bar = [${foo}, ${foo}{ y = 456 }]
+";
+            var root = JsonPlusParser.Parse(source);
+            var barValue = root.GetValue("bar").GetArray();
+
+            Assert.Equal(123, barValue[0].GetObject()["x"].GetValue().GetInt32());
+            Assert.Equal(123, barValue[1].GetObject()["x"].GetValue().GetInt32());
+            Assert.Equal(456, barValue[1].GetObject()["y"].GetValue().GetInt32());
+        }
+
+        /// <summary>
+        /// A substitition path must be fully qualified: i.e. all members must be referenced by its full path
+        /// </summary>
+        [Fact]
+        public void SubstitutionPathMustBeFullyQualified()
+        {
+            var source = @"
+    foo = outerhello
+    bar {
+        foo = innerhello
+        suba = ${foo}
+        subb = ${bar.foo}
+    }
+";
+            var root = JsonPlusParser.Parse(source);
+
+            Assert.Equal("outerhello", root.GetString("bar.suba"));
+            Assert.Equal("innerhello", root.GetString("bar.subb"));
+
+            var source2 = @"
+    foo {
+        bar = hello
+        suba = ${bar}
+    }
+";
+            var ex = Record.Exception(() => JsonPlusParser.Parse(source2));
+            Assert.NotNull(ex);
+            Assert.IsType<JsonPlusParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void SubstitutionChangeValueByPath()
+        {
+/*
+            var source = @"
+    foo = dummy
+    subfoo = ${foo}sub1
+    subbar = ${foo}sub2
+    deep {
+        subfoo = ${foo}subx
+        subbar = ${foo}suby
+    }
+    subbar = world
+";
+*/
+            var source = @"
+    foo = dummy
+    subfoo = ${foo}sub1
+    deep {
+        subfoo = ${foo}subx
+        subbar = ${foo}suby
+    }
+    subbar = ${foo}sub2
+    subbar = world
+";
+            var root = JsonPlusParser.Parse(source);
+
+            Assert.Equal("dummy", root.GetString("foo"));
+            Assert.Equal("dummysub1", root.GetString("subfoo"));
+            Assert.Equal("dummysubx", root.GetString("deep.subfoo"));
+            Assert.Equal("dummysuby", root.GetString("deep.subbar"));
+            Assert.Equal("world", root.GetString("subbar"));
+        }
+
+        /// <summary>
+        /// Setting bar.foo to ${foo} is not a self-substitution.
+        /// </summary>
+        [Fact]
+        public void KeyNameCanContainSubstitutionPath()
+        {
+            var source = @"
+    foo {
+        x = 32
+    }
+    bar {
+        foo = ${foo}
+    }
+    daz {
+        foo = ${foo.x}
+    }
+";
+            var root = JsonPlusParser.Parse(source);
+            Assert.Equal(32, root.GetInt32("bar.foo.x"));
+            Assert.Equal(32, root.GetInt32("daz.foo"));
+        }
     }
 }
