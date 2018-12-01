@@ -1,7 +1,6 @@
 year = '2018'
 
 pkgDir = ${rootDir}'packages/oneget'
-dotnetSdkDir = ${rootDir}'packages/dotnetsdk'
 #credDir = ${rootDir}'Credentials/lizoc'
 
 # ------------------
@@ -31,22 +30,22 @@ docServerUrl = 'http://'${gitUser}'.github.io'
 # Version management
 # ------------------
 versioning {
-    major = 1
-    minor = 10
+    major = 2
+    minor = 0
     revision = 0
     
     # Default value is 'beta'. You should set it to '' when releasing a production build
-    suffix = ''
+    suffix = 'rc1'
     #suffix = 'beta'
 
     # The 'build' property takes its value from either 'release-build' or 'debug-build', depending on the configuration.
 
     # Build number to use when configuration is 'release'
-    # Use 'auto' to autoincrement with every build
-    release-build = 1024
+    # Use 'auto' to autoincrement with every configure
+    release-build = 2048
 
     # Build number to use when configuration is 'debug'
-    # Use 'auto' to autoincrement with every build
+    # Use 'auto' to autoincrement with every configure
     debug-build = auto
 }
 
@@ -58,6 +57,32 @@ company = 'Lizoc Inc.'
 product = 'Json+ Parser Library'
 authors = [ 'Lizoc' ]
 trademark = 'Lizoc'
+
+website = 'http://www.lizoc.com'
+license = 'MIT'
+
+copyrightHeader {
+    'Source/*.cs' {
+        # header must appear at beginning of file => ^
+        # first line: `//`, optional whitespaces, then repeating `-` => (//)(\s)*(-)+
+        # newline: `\r\n` or `\n` => ((\r){0,1}(\n))
+        # second line: `//`, optional whitespaces, `<copyright`, any chars except line break, then `>` => (//)(\s)*(<copyright)(.)*(>)
+        # second line continue: any chars and line breaks => (.|\n)*
+        # second last line: `//`, optional whitespaces, `</copyright>`, then newline => (//)(\s)*(</copyright>)((\r){0,1}(\n))
+        # last line: `//`, optional whitespaces, then repeating `-`, then repeating whitespace and newlines => (//)(\s)*(-)+(\s|\n)*
+        find = '^(//)(\\s)*(-)+((\\r){0,1}(\\n))(//)(\\s)*(<copyright)(.)*(>)(.|\\n)*(//)(\\s)*(</copyright>)((\\r){0,1}(\\n))(//)(\\s)*(-)+(\\s|\\n)*'
+        replace = '''// -----------------------------------------------------------------------
+// <copyright file="${filename}" repo="'''${repoFullName}'''">
+//     Copyright (C) '''${year}''' '''${company}''' <'''${website}'''>
+//     The source code in this file is subject to the '''${license}''' license.
+//     See the LICENSE file in the repository root directory for more information.
+// </copyright>
+// -----------------------------------------------------------------------
+
+'''
+        recurse = true
+    }
+}
 
 # ------------------
 # Security

@@ -1,4 +1,8 @@
-#include cslib,net462,netstandard1_6,netstandard2_0
+include 'cslib'
+include 'net462'
+include 'netstandard1_6'
+include 'netstandard2_0'
+
 clsCompliant = false
 allowPartialTrust = false
 assemblyDescription = 'PowerShell module for Json+. Use this module to parse Json+ to PowerShell objects.'
@@ -52,3 +56,12 @@ frameworks {
 versioning {
     suffix = 'beta'
 }
+#package {
+#	output {
+#		nuget {
+#			files {
+#				'/' += [ ${projectDir}'/Static/**' ]
+#			}
+#		}
+#	}
+#}

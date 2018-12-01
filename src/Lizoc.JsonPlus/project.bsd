@@ -1,4 +1,7 @@
-#include cslib,net462,netstandard1_3
+include 'cslib'
+include 'net462'
+include 'netstandard1_3'
+
 assemblyDescription = 'A superset of the popular JSON format. Json+ is designed for ease of editing and is capable of variable substitution.'
 #assemblyAlias
 #comGuid
