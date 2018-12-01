@@ -14,7 +14,7 @@ namespace Lizoc.JsonPlus.Tests
 {
     internal static class ResUtility
     {
-        // <summary>
+        /// <summary>
         /// Parse Json+ source code embedded in an assembly resource.
         /// </summary>
         /// <param name="resourceName">The name of the resource that contains the source text.</param>
