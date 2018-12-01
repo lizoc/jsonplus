@@ -100,3 +100,4 @@ CannotConvertLiteralToObject = A literal value in Json+ cannot be converted to o
 CannotConvertLiteralToArray = A literal value in Json+ cannot be converted to array.
 ErrCastNodeByPathToArray = Unable to return an array at path "{0}".
 CloseLiteralQuoteMissing = The end quote character for a quoted literal value was not found.
+PathCannotContainNewLine = A key that contains the newline character cannot be referenced in a path.

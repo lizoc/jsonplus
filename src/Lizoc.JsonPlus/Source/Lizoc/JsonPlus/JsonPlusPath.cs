@@ -58,7 +58,7 @@ namespace Lizoc.JsonPlus
                 {
                     // path expressions does not support control chars #todo
                     if (substr.NeedTripleQuotes())
-                        throw new JsonPlusParserException("RS.PathCannotContainNewLine");
+                        throw new JsonPlusParserException(RS.PathCannotContainNewLine);
 
                     pathExpr.Add((substr.Contains('.') || substr.ContainsJsonPlusWhitespaceExceptNewLine()) 
                         ? substr.AddQuotes() 
