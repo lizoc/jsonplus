@@ -1,7 +1,7 @@
 Tips and Tricks
 ===============
 
-1. Use `#` instead of `//`
+1. To comment, use `#` instead of `//`
 Less characters to type :)
 
 
@@ -14,7 +14,7 @@ Other than numbers, there are a number of keywords that the parser will interpre
 
 
 4. Choose your quote in the order `single` > `double` > `triple`
-Single quotes are easier to type than double quotes, but use double quote if your string has single quote in it but no double quote. Use triple quotes when you need multiline strings.
+'Single quotes' are easier to type than "double quotes", but to avoid escaping, use double quote if your string has single quote in it but no double quote (e.g. `"i'm a geek"` instead of `'i\'m a geek'`). Use '''triple single quotes''' or """triple double quotes""" when you need multiline strings.
 
 
 5. Make full use of duplicate keys
@@ -26,25 +26,24 @@ Use line breaks in lists. Commas are redundant.
 
 
 7. Don't use the assignment character when the value is an object. It is redundant.
-It is redundant.
 
 For example, use this:
 ```
-fooo {
+foo {
 	bar = 5
 }
 ```
 
 and not this, where the `=` is completely unnecessary:
 ```
-fooo = {
+foo = {
 	bar = 5
 }
 ```
 
 
 8. Beware of extra whitespace in substitions
-Unlike most scripting languages, concating strings is automatic. Therefore, whitespace between concating strings are always included:
+Unlike most scripting languages, literal values are always concated automatically. Therefore, whitespace between concating strings are always included:
 
 ```
 foo = 'blah'
@@ -57,7 +56,7 @@ car = ${foo} ' haha'
 9. Be mindful of units
 An integer followed by `ns`, `us`, `ms`, `s`, `m`, `h`, or `d` turns into a `TimeSpan`.
 
-An integer followed by `kb`, `mb`, `gb`, `tb`, or `pb` turns into a 64-bit integer (using the suffix as a data size unit).
+An integer followed by `kb`, `mb`, `gb`, `tb`, or `pb` turns into a 64-bit integer.
 
 Which brings us to point 3 (quote your strings). It's a good habit!
 
