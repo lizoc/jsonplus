@@ -70,7 +70,7 @@ You can append a data size unit to a number, for example:
 
 The two-letter unit strings is case sensitive. There must not be any whitespace between the number and the unit.
 
-There is an unfortunate nightmare with size-in-bytes units, that they may be in powers or two or powers of ten. The approach defined by standards bodies appears to differ from common usage, such that following the standard leads to people being confused. Worse, common usage varies based on whether people are talking about RAM or disk sizes, and various existing operating systems and apps do all kinds of different things. See [http://en.wikipedia.org/wiki/Binary_prefix#Deviation_between_powers_of_1024_and_powers_of_1000](this wiki article) for examples. The notation adopted by Json+ is more of a consideration of convenienence than attempting to follow any standard at all.
+There is an unfortunate nightmare with size-in-bytes units, that they may be in powers or two or powers of ten. The approach defined by standards bodies appears to differ from common usage, such that following the standard leads to people being confused. Worse, common usage varies based on whether people are talking about RAM or disk sizes, and various existing operating systems and apps do all kinds of different things. See [this wiki article](http://en.wikipedia.org/wiki/Binary_prefix#Deviation_between_powers_of_1024_and_powers_of_1000) for examples. The notation adopted by Json+ is more of a consideration of convenienence than attempting to follow any standard at all.
 
 Note: any value in zetta/zebi or yotta/yobi will overflow a 64-bit integer, and of course large-enough values in any of the units may overflow. Care must be taken to cath such overflow exceptions when using the parser.
 
@@ -182,7 +182,7 @@ In all other cases, you must use a quoted string.
 
 Let's see some examples:
 
-`truefoo` parses as the boolean token `true` followed by the unquoted string `foo`. However, `footrue` parses as the unquoted string `footrue`. Similarly, `10.0bar` is the number `10.0` then the unquoted string `bar` but `bar10.0` is the unquoted string `bar10.0`. In practice, this distinction doesn't matter much because of [./tutorial-concat.md](value concatenation).
+`truefoo` parses as the boolean token `true` followed by the unquoted string `foo`. However, `footrue` parses as the unquoted string `footrue`. Similarly, `10.0bar` is the number `10.0` then the unquoted string `bar` but `bar10.0` is the unquoted string `bar10.0`. In practice, this distinction doesn't matter much because of [value concatenation](./tutorial-concat.md).
 
 In general, once an unquoted string begins, it continues until a reserved character or the two-character comment string `//` is encountered. Embedded (non-initial) booleans, nulls, and numbers are not recognized as such, they are part of the string.
 
