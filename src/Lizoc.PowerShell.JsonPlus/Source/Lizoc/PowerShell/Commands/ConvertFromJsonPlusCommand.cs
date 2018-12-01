@@ -10,11 +10,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Net;
 using Lizoc.JsonPlus;
 using Lizoc.PowerShell.JsonPlus;
+using System.Collections.ObjectModel;
+using System.Text;
 
 namespace Lizoc.PowerShell.Commands
 {
@@ -32,11 +33,6 @@ namespace Lizoc.PowerShell.Commands
 
         private List<string> _inputObjectBuffer = new List<string>();
 
-        private string[] _allowInclude = new string[] { "Any" };
-        private bool _allowIncludeFile = true;
-        private bool _allowIncludeUrl = true;
-        //private bool _allowIncludeAssembly = true;
-
         private bool _allowResolveEnv = true;
 
         private int _recurseLevel = -1; // this will become 0 when called by the root node 
@@ -49,43 +45,19 @@ namespace Lizoc.PowerShell.Commands
         public string InputObject { get; set; }
 
         /// <summary>
-        /// Restricts the type of source that the `include` directive may use. Defaults to no restriction.
+        /// Search environment variables when resolving substitutions.
+        /// </summary>
+        public SwitchParameter AllowEnvSubstitution
+        {
+            get { return _allowResolveEnv; }
+            set { _allowResolveEnv = value; }
+        }
+
+        /// <summary>
+        /// A script to resolve `include` and `include?` directives. The default implementation can resolve local files and web URL.
         /// </summary>
         [Parameter()]
-        [ValidateSet(new string[] { "Any", "File", "Url", "Environment" })]
-        // [ValidateSet(new string[] { "Any", "File", "Url", "Assembly", "Environment" })]
-        public string[] AllowInclude
-        {
-            get
-            {
-                return _allowInclude;
-            }
-            set
-            {
-                _allowInclude = value;
-
-                if (_allowInclude.Contains("Any"))
-                {
-                    //_allowIncludeAssembly = true;
-                    _allowIncludeUrl = true;
-                    _allowIncludeFile = true;
-                    _allowResolveEnv = true;
-                    return;
-                }
-
-                if (_allowInclude.Contains("File"))
-                    _allowIncludeFile = true;
-
-                if (_allowInclude.Contains("Url"))
-                    _allowIncludeUrl = true;
-
-                //if (_allowInclude.Contains("Assembly"))
-                //    _allowIncludeAssembly = true;
-
-                if (_allowInclude.Contains("Environment"))
-                    _allowResolveEnv = true;
-            }
-        }
+        public ScriptBlock Include { get; set; }
 
         /// <summary>
         /// Restricts the recursion level to convert. If you do not specify this parameter, the recursion level will not be limited.
@@ -123,48 +95,48 @@ namespace Lizoc.PowerShell.Commands
             JsonPlusRoot root;
             try
             {
-                async Task<string> includeCallback(IncludeSource resType, string path)
+                // this is the default include callback behavior
+                async Task<string> includeCallback(string path)
                 {
-                    if (path == null)
+                    if (Include != null)
+                    {
+                        Collection<PSObject> psResult = Include.Invoke(path);
+
+                        StringBuilder sb = new StringBuilder();
+                        foreach (PSObject psobj in psResult)
+                        {
+                            sb.AppendLine(psobj.ToString());
+                        }
+
+                        return sb.ToString();
+                    }
+
+                    // default implement
+
+                    if (string.IsNullOrEmpty(path))
                         return "{}";
 
-                    // heuristically determine res type
-                    if (resType == IncludeSource.Unspecified)
+                    if (path.StartsWith("http://") ||
+                        path.StartsWith("https://"))
                     {
-                        if (path.StartsWith("http://") || path.StartsWith("https://"))
-                            resType = IncludeSource.Url;
-                        else if (path.StartsWith("file://"))
-                            resType = IncludeSource.Url; // defined by spec
-                        else
-                            resType = IncludeSource.File;
+                        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(path);
+                        using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
+                        using (Stream stream = response.GetResponseStream())
+                        using (StreamReader reader = new StreamReader(stream))
+                        {
+                            return await reader.ReadToEndAsync();
+                        }
+                    }
+                    else
+                    {
+                        if (path.StartsWith("file://"))
+                            path = path.Substring("file://".Length);
+
+                        File.ReadAllText(path);
                     }
 
-                    switch (resType)
-                    {
-                        case IncludeSource.File:
-                            if (!_allowIncludeFile)
-                                return "{}";
-
-                            return File.ReadAllText(path);
-
-                        case IncludeSource.Url:
-                            if (!_allowIncludeUrl)
-                                return "{}";
-
-                            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(path);
-                            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
-                            using(Stream stream = response.GetResponseStream())
-                            using(StreamReader reader = new StreamReader(stream))
-                            {
-                                return await reader.ReadToEndAsync();
-                            }
-
-                        //case IncludeSource.Resource:
-                        //    return "{}";
-
-                        default:
-                            return "{}";
-                    }
+                    // this will result in an error unless using `include?` directive
+                    return string.Empty;
                 }
 
                 string source;

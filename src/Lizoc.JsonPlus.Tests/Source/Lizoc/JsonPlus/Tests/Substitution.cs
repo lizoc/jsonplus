@@ -201,7 +201,7 @@ namespace Lizoc.JsonPlus.Tests
 x = 123
 y = ${x}
 ";
-            Task<string> IncludeCallback(IncludeSource t, string s)
+            Task<string> IncludeCallback(string s)
                 => Task.FromResult(includeSrc);
 
             var config = JsonPlusParser.Parse(source, IncludeCallback);
@@ -229,7 +229,7 @@ x = 123
 y = ${x}
 ";
 
-            Task<string> Include(IncludeSource t, string s)
+            Task<string> Include(string s)
             {
                 switch (s)
                 {

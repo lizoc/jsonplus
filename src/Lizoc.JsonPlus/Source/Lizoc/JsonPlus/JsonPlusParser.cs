@@ -15,10 +15,9 @@ namespace Lizoc.JsonPlus
     /// <summary>
     /// Defines a callback function for returning data using the `include` directive.
     /// </summary>
-    /// <param name="callbackType">The type of include source, such as file, URL, or resources embedded in assemblies.</param>
     /// <param name="value">The resource path.</param>
-    /// <returns>An asynchronous task that contains the data returned by the `include` directive.</returns>
-    public delegate Task<string> IncludeCallbackAsync(IncludeSource callbackType, string value);
+    /// <returns>An asynchronous task that contains the data returned by the `include` or `include?` directive.</returns>
+    public delegate Task<string> IncludeCallbackAsync(string value);
 
     /// <summary>
     /// This class contains methods used to parse Json+ source code.
@@ -26,7 +25,7 @@ namespace Lizoc.JsonPlus
     public sealed partial class JsonPlusParser
     {
         private readonly List<JsonPlusSubstitution> _substitutions = new List<JsonPlusSubstitution>();
-        private IncludeCallbackAsync _includeCallback = (type, value) => Task.FromResult("{}");
+        private IncludeCallbackAsync _includeCallback = (value) => Task.FromResult("{}");
 
         private TokenizeResult _tokens;
         private JsonPlusValue _root;
@@ -258,6 +257,7 @@ namespace Lizoc.JsonPlus
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
+                    case TokenType.OptionalInclude:
                         _root.Add(ParseInclude(_root));
                         break;
 
@@ -295,22 +295,19 @@ namespace Lizoc.JsonPlus
 
         private IJsonPlusNode ParseInclude(IJsonPlusNode owner)
         {
-            // Sanity check
-            if (_tokens.Current.Type != TokenType.Include)
+            // sanity check
+            if (_tokens.Current.Type != TokenType.Include && 
+                _tokens.Current.Type != TokenType.OptionalInclude)
+            {
                 throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.InvalidTokenOnParseInclude, _tokens.Current.Type));
+            }
 
-            int parenthesisCount = 0;
-            bool required = false;
-            IncludeSource callbackType = IncludeSource.Unspecified;
+            bool required = _tokens.Current.Type == TokenType.Include;
             string fileName = null;
             Token includeToken = _tokens.Current;
 
             List<TokenType> expectedTokens = new List<TokenType>(new[]
             {
-                TokenType.Required,
-                TokenType.Url,
-                TokenType.File,
-                TokenType.ClassPath,
                 TokenType.LiteralValue,
                 TokenType.CloseBracket,
                 TokenType.EndOfLine
@@ -324,59 +321,6 @@ namespace Lizoc.JsonPlus
 
                 switch (_tokens.Current.Type)
                 {
-                    case TokenType.CloseBracket:
-                        if (parenthesisCount == 0)
-                            throw JsonPlusParserException.Create(_tokens.Current, Path, RS.UnexpectedCloseBracket, null);
-
-                        parenthesisCount--;
-                        parsing = parenthesisCount > 0;
-                        break;
-
-                    case TokenType.Required:
-                        if (!_tokens.GetNextSignificant(TokenType.OpenBracket))
-                            throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedToken, TokenType.OpenBracket, _tokens.Current.Type));
-
-                        parenthesisCount++;
-                        required = true;
-                        expectedTokens.Remove(TokenType.Required);
-                        break;
-
-                    case TokenType.Url:
-                        if (!_tokens.GetNextSignificant(TokenType.OpenBracket))
-                            throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedToken, TokenType.OpenBracket, _tokens.Current.Type));
-
-                        parenthesisCount++;
-                        callbackType = IncludeSource.Url;
-                        expectedTokens.Remove(TokenType.Required);
-                        expectedTokens.Remove(TokenType.Url);
-                        expectedTokens.Remove(TokenType.File);
-                        expectedTokens.Remove(TokenType.ClassPath);
-                        break;
-
-                    case TokenType.File:
-                        if (!_tokens.GetNextSignificant(TokenType.OpenBracket))
-                            throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedToken, TokenType.OpenBracket, _tokens.Current.Type));
-
-                        parenthesisCount++;
-                        callbackType = IncludeSource.File;
-                        expectedTokens.Remove(TokenType.Required);
-                        expectedTokens.Remove(TokenType.Url);
-                        expectedTokens.Remove(TokenType.File);
-                        expectedTokens.Remove(TokenType.ClassPath);
-                        break;
-
-                    case TokenType.ClassPath:
-                        if (!_tokens.GetNextSignificant(TokenType.OpenBracket))
-                            throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedToken, TokenType.OpenBracket, _tokens.Current.Type));
-
-                        parenthesisCount++;
-                        callbackType = IncludeSource.Resource;
-                        expectedTokens.Remove(TokenType.Required);
-                        expectedTokens.Remove(TokenType.Url);
-                        expectedTokens.Remove(TokenType.File);
-                        expectedTokens.Remove(TokenType.ClassPath);
-                        break;
-
                     case TokenType.LiteralValue:
                         if (_tokens.Current.IsNonSignificant())
                             ConsumeWhitespace();
@@ -388,12 +332,8 @@ namespace Lizoc.JsonPlus
 
                         fileName = _tokens.Current.Value;
                         expectedTokens.Remove(TokenType.LiteralValue);
-                        expectedTokens.Remove(TokenType.Required);
-                        expectedTokens.Remove(TokenType.Url);
-                        expectedTokens.Remove(TokenType.File);
-                        expectedTokens.Remove(TokenType.ClassPath);
 
-                        parsing = parenthesisCount > 0;
+                        parsing = false;
                         break;
 
                     default:
@@ -401,16 +341,13 @@ namespace Lizoc.JsonPlus
                 }
             }
 
-            if (parenthesisCount > 0)
-                throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedToken, TokenType.CloseBracket, _tokens.Current.Type));
-            
             if (fileName == null)
                 throw JsonPlusParserException.Create(_tokens.Current, Path, RS.FileNameMissingInInclude);
 
             // Consume the last token
             _tokens.Next();
 
-            string includeSrc = _includeCallback(callbackType, fileName).ConfigureAwait(false).GetAwaiter().GetResult();
+            string includeSrc = _includeCallback(fileName).ConfigureAwait(false).GetAwaiter().GetResult();
 
             if (string.IsNullOrWhiteSpace(includeSrc))
             {
@@ -467,6 +404,7 @@ namespace Lizoc.JsonPlus
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
+                    case TokenType.OptionalInclude:
                         if (lastValue != null)
                         {
                             throw JsonPlusParserException.Create(_tokens.Current, Path, string.Format(RS.UnexpectedTokenWith2AltInObject,
@@ -654,6 +592,7 @@ namespace Lizoc.JsonPlus
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
+                    case TokenType.OptionalInclude:
                         value.Add(ParseInclude(value));
                         break;
 
@@ -750,6 +689,7 @@ namespace Lizoc.JsonPlus
             switch (_tokens.Current.Type)
             {
                 case TokenType.Include:
+                case TokenType.OptionalInclude:
                     // #todo
                     currentArray.Add(ParseInclude(currentArray));
                     break;
@@ -805,6 +745,7 @@ namespace Lizoc.JsonPlus
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
+                    case TokenType.OptionalInclude:
                         if (lastValue != null)
                         {
                             throw JsonPlusParserException.Create(_tokens.Current, Path,

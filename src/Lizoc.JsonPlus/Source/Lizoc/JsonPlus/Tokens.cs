@@ -94,24 +94,9 @@ namespace Lizoc.JsonPlus
         Include,
 
         /// <summary>
-        /// This token type represents the required() directive.
+        /// This token type represents the optional include directive.
         /// </summary>
-        Required,
-
-        /// <summary>
-        /// This token type represents the url() directive.
-        /// </summary>
-        Url,
-
-        /// <summary>
-        /// This token type represents the file() directive.
-        /// </summary>
-        File,
-
-        /// <summary>
-        /// This token type represents the classpath() directive.
-        /// </summary>
-        ClassPath,
+        OptionalInclude,
 
         /// <summary>
         /// This token type represents a tokenizer error.

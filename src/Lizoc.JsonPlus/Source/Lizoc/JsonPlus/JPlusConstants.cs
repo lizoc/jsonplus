@@ -94,15 +94,9 @@ namespace Lizoc.JsonPlus
         public const string IncludeKeyword = "include";
         public const int IncludeKeywordLength = 7;
         public const char IncludeKeywordFirstChar = 'i';
-        public const string IncludeResourceKeyword = "assembly";
-        public const int IncludeResourceKeywordLength = 8;
-        public const string IncludeFileKeyword = "file";
-        public const int IncludeFileKeywordLength = 4;
-        public const string IncludeUrlKeyword = "url";
-        public const int IncludeUrlKeywordLength = 3;
-
-        public const string RequireKeyword = "require";
-        public const int RequireKeywordLength = 7;
+        public const string IncludeOptionalKeyword = IncludeKeyword + "?";
+        public const int IncludeOptionalKeywordLength = IncludeKeywordLength + 1;
+        public const char IncludeOptionalKeywordFirstChar = IncludeKeywordFirstChar;
 
         // open and close brackets hardcoded to 1 char only
         public const char OpenBracketChar = '(';

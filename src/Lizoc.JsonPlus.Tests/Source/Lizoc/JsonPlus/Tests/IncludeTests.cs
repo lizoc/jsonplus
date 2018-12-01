@@ -27,7 +27,7 @@ namespace Lizoc.JsonPlus.Tests
 x = 123
 y = hello
 ";
-            Task<string> IncludeCallback(IncludeSource t, string s)
+            Task<string> IncludeCallback(string s)
                 => Task.FromResult(includeSrc);
 
             var root = JsonPlusParser.Parse(source, IncludeCallback);
@@ -44,7 +44,7 @@ y = hello
             var source = @"a : include ""foo""";
             var includeSrc = @"[1, 2, 3]";
 
-            Task<string> IncludeCallback(IncludeSource t, string s)
+            Task<string> IncludeCallback(string s)
                 => Task.FromResult(includeSrc);
 
             var config = JsonPlusParser.Parse(source, IncludeCallback);
@@ -57,7 +57,7 @@ y = hello
             var source = @"a : [ include ""foo"" ]";
             var includeSrc = @"[1, 2, 3]";
 
-            Task<string> IncludeCallback(IncludeSource t, string s)
+            Task<string> IncludeCallback(string s)
                 => Task.FromResult(includeSrc);
 
             var config = JsonPlusParser.Parse(source, IncludeCallback);
@@ -80,7 +80,7 @@ cat = meow
             var includeSrc = @"a = 32";
             var includeSrc2 = @"b { foo = bar }";
 
-            Task<string> IncludeCallback(IncludeSource t, string s)
+            Task<string> IncludeCallback(string s)
                 => Task.FromResult(s == "foo" ? includeSrc : includeSrc2);
 
             var config = JsonPlusParser.Parse(source, IncludeCallback);
@@ -100,7 +100,7 @@ a : include ""foo""
 x = 123
 y = hello
 ";
-            Task<string> includeCallback(IncludeSource resType, string path)
+            Task<string> includeCallback(string path)
                 => Task.FromResult(includeSrc);
 
             var config = JsonPlusParser.Parse(source, includeCallback);
@@ -113,23 +113,41 @@ y = hello
         [Fact]
         public void CanIncludeFromAssembly()
         {
-            var source = @"a { include assembly(""Hello.jsonp"") }";
+            var source = @"a { include ""dll://Hello.jsonp"" }";
 
-            Task<string> includeAssemblyCallback(IncludeSource resType, string path)
+            Task<string> includeAssemblyCallback(string path)
             {
-                switch (resType)
-                {
-                    case IncludeSource.Resource:
-                        return Task.FromResult(ResUtility.GetEmbedString(path));
+                if (string.IsNullOrEmpty(path))
+                    return Task.FromResult("{}");
 
-                    default:
-                        return Task.FromResult("{}");
-                }
+                if (path.StartsWith("dll://"))
+                    return Task.FromResult(ResUtility.GetEmbedString(path.Substring("dll://".Length)));
+
+                return Task.FromResult("{}");
             }
 
             var config = JsonPlusParser.Parse(source, includeAssemblyCallback);
 
             Assert.Equal("Hello world", config.GetString("a.root.simple-string"));
+        }
+
+        [Fact]
+        public void OptionalIncludeSuppressError()
+        {
+            Task<string> includeCallback(string path)
+                => Task.FromResult(string.Empty);
+
+            var source = @"
+include ""foo""
+";
+            Assert.Throws<JsonPlusParserException>(() => JsonPlusParser.Parse(source, includeCallback));
+
+            var source2 = @"
+include? ""foo""
+";
+
+            var config = JsonPlusParser.Parse(source2, includeCallback);
+            Assert.True(config.IsEmpty);
         }
     }
 }

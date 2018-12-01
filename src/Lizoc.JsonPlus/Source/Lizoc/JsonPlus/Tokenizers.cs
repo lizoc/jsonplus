@@ -366,54 +366,29 @@ namespace Lizoc.JsonPlus
 
         private bool PullInclude(TokenizeResult tokens)
         {
+            // include? will also match this
             if (!Matches(JPlusConstants.IncludeKeyword))
                 return false;
 
             PushIndex();
             TokenizeResult includeTokens = new TokenizeResult();
 
-            Take(JPlusConstants.IncludeKeywordLength);
-            includeTokens.Add(new Token(JPlusConstants.IncludeKeyword, TokenType.Include, this));
+            // now find out it its include? or include
+            bool isOptional = false;
+            if (Matches(JPlusConstants.IncludeOptionalKeyword))
+                isOptional = true;
+
+            if (isOptional)
+            {
+                Take(JPlusConstants.IncludeOptionalKeywordLength);
+                includeTokens.Add(new Token(JPlusConstants.IncludeOptionalKeyword, TokenType.OptionalInclude, this));
+            }
+            else
+            {
+                Take(JPlusConstants.IncludeKeywordLength);
+                includeTokens.Add(new Token(JPlusConstants.IncludeKeyword, TokenType.Include, this));
+            }
             PullWhitespaces();
-
-            int parenCount = 0;
-            if (PullRequire(includeTokens))
-            {
-                if (!PullOpenBracket(includeTokens))
-                {
-                    ResetIndex();
-                    return false;
-                }
-                parenCount++;
-            }
-
-            if (PullFileInclude(includeTokens))
-            {
-                if (!PullOpenBracket(includeTokens))
-                {
-                    ResetIndex();
-                    return false;
-                }
-                parenCount++;
-            }
-            else if (PullUrlInclude(includeTokens))
-            {
-                if (!PullOpenBracket(includeTokens))
-                {
-                    ResetIndex();
-                    return false;
-                }
-                parenCount++;
-            }
-            else if (PullResourceInclude(includeTokens))
-            {
-                if (!PullOpenBracket(includeTokens))
-                {
-                    ResetIndex();
-                    return false;
-                }
-                parenCount++;
-            }
 
             if (!PullQuoted(includeTokens, JPlusConstants.QuoteChar) && 
                 !PullQuoted(includeTokens, JPlusConstants.AltQuoteChar))
@@ -422,83 +397,8 @@ namespace Lizoc.JsonPlus
                 return false;
             }
 
-            for (; parenCount > 0; --parenCount)
-            {
-                if (!PullCloseBracket(includeTokens))
-                {
-                    ResetIndex();
-                    return false;
-                }
-            }
-
             PopIndex();
             tokens.AddRange(includeTokens);
-            return true;
-        }
-
-        private bool PullOpenBracket(TokenizeResult tokens)
-        {
-            if (Peek != JPlusConstants.OpenBracketChar)
-                return false;
-
-            Take();
-            tokens.Add(new Token(JPlusConstants.OpenBracket, TokenType.OpenBracket, this));
-            PullWhitespaces();
-            return true;
-        }
-
-        private bool PullCloseBracket(TokenizeResult tokens)
-        {
-            if (Peek != JPlusConstants.CloseBracketChar)
-                return false;
-
-            Take();
-            tokens.Add(new Token(JPlusConstants.CloseBracket, TokenType.CloseBracket, this));
-            PullWhitespaces();
-            return true;
-        }
-
-        private bool PullRequire(TokenizeResult tokens)
-        {
-            if (!Matches(JPlusConstants.RequireKeyword))
-                return false;
-
-            Take(JPlusConstants.RequireKeywordLength);
-            tokens.Add(new Token(JPlusConstants.RequireKeyword, TokenType.Required, this));
-            PullWhitespaces();
-            return true;
-        }
-
-        private bool PullUrlInclude(TokenizeResult tokens)
-        {
-            if (!Matches(JPlusConstants.IncludeUrlKeyword))
-                return false;
-
-            Take(JPlusConstants.IncludeUrlKeywordLength);
-            tokens.Add(new Token(JPlusConstants.IncludeUrlKeyword, TokenType.Url, this));
-            PullWhitespaces();
-            return true;
-        }
-
-        private bool PullFileInclude(TokenizeResult tokens)
-        {
-            if (!Matches(JPlusConstants.IncludeFileKeyword))
-                return false;
-
-            Take(JPlusConstants.IncludeFileKeywordLength);
-            tokens.Add(new Token(JPlusConstants.IncludeFileKeyword, TokenType.File, this));
-            PullWhitespaces();
-            return true;
-        }
-
-        private bool PullResourceInclude(TokenizeResult tokens)
-        {
-            if (!Matches(JPlusConstants.IncludeResourceKeyword))
-                return false;
-
-            Take(JPlusConstants.IncludeResourceKeywordLength);
-            tokens.Add(new Token(JPlusConstants.IncludeResourceKeyword, TokenType.ClassPath, this));
-            PullWhitespaces();
             return true;
         }
 
