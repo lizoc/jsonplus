@@ -109,12 +109,12 @@ namespace Lizoc.JsonPlus
         {
             if (s.Contains(JPlusConstants.QuoteChar))
             {
-                return JPlusConstants.QuoteChar.ToString() +
-                    s.Replace(JPlusConstants.QuoteChar.ToString(), JPlusConstants.Escape + JPlusConstants.QuoteChar.ToString()) +
-                    JPlusConstants.QuoteChar.ToString();
+                return JPlusConstants.Quote +
+                    s.Replace(JPlusConstants.Quote, JPlusConstants.Escape + JPlusConstants.Quote) +
+                    JPlusConstants.Quote;
             }
 
-            return JPlusConstants.QuoteChar.ToString() + s + JPlusConstants.QuoteChar.ToString();
+            return JPlusConstants.Quote + s + JPlusConstants.Quote;
         }
 
         public static bool Contains(this string s, char c)

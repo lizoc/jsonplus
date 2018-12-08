@@ -910,7 +910,6 @@ namespace Lizoc.JsonPlus
             return sb.ToString();
         }
 
-        // #todo alt comment
         private bool IsStartOfComment()
         {
             return Matches(JPlusConstants.Comment, JPlusConstants.AltComment);

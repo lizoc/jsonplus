@@ -430,7 +430,7 @@ namespace Lizoc.JsonPlus
         {
             get
             {
-                return JPlusConstants.QuoteChar.ToString() + Value + JPlusConstants.QuoteChar.ToString();
+                return JPlusConstants.Quote + Value + JPlusConstants.Quote;
             }
         }
 

@@ -52,20 +52,54 @@ namespace Lizoc.JsonPlus
                 if (IsEmpty)
                     return string.Empty;
 
-                List<string> pathExpr = new List<string>();
+                // this is chosen to encode \ in a key
+                // anything will do, but if the key contains a lot of this we'll need to do many escapes and impact perf.
+                // let's hope this sequence appears rare enough for most situations
+                const string encodeEscapeCharAs = "^";
 
-                foreach (string substr in this)
+                List<string> pathSegments = new List<string>();
+
+                foreach (string subKey in this)
                 {
-                    // path expressions does not support control chars #todo
-                    if (substr.NeedTripleQuotes())
-                        throw new JsonPlusParserException(RS.PathCannotContainNewLine);
+                    if (subKey == string.Empty)
+                    {
+                        pathSegments.Add(JPlusConstants.Quote + JPlusConstants.Quote);
+                        continue;
+                    }
 
-                    pathExpr.Add((substr.Contains('.') || substr.ContainsJsonPlusWhitespaceExceptNewLine()) 
-                        ? substr.AddQuotes() 
-                        : substr.AddQuotesIfRequired());
+                    bool hasEscapeChar = subKey.Contains(JPlusConstants.EscapeChar);
+
+                    string escapedSubKey = hasEscapeChar
+                        ? subKey.Replace(encodeEscapeCharAs, encodeEscapeCharAs + "2").Replace(JPlusConstants.Escape, encodeEscapeCharAs + "1")
+                        : subKey;
+
+                    // AddQuotes() will auto escape the " char
+                    if (escapedSubKey.Contains(JPlusConstants.NewLineChar))
+                    {
+                        // escape chars that can't be expressed quote/unquoted (e.g. \n)
+                        escapedSubKey = escapedSubKey.Replace(JPlusConstants.NewLine, JPlusConstants.Escape + "n").AddQuotes();
+                    }
+                    else if (escapedSubKey.ContainsJsonPlusWhitespaceExceptNewLine())
+                    {
+                        // add quotes around whitespaces and control chars. not strictly necessary but it is less confusing imo
+                        escapedSubKey = escapedSubKey.AddQuotes();
+                    }
+                    else
+                    {
+                        // no need to worry about NeedTripleQuotes because there's no newline char
+
+                        if (escapedSubKey.Contains('.'))
+                            escapedSubKey = escapedSubKey.AddQuotes();
+                        else
+                            escapedSubKey = escapedSubKey.AddQuotesIfRequired();
+                    }
+
+                    pathSegments.Add(hasEscapeChar
+                        ? escapedSubKey.Replace(encodeEscapeCharAs + "1", (JPlusConstants.Escape + JPlusConstants.Escape)).Replace(encodeEscapeCharAs + "2", encodeEscapeCharAs)
+                        : escapedSubKey);
                 }
 
-                return string.Join(".", pathExpr);
+                return string.Join(".", pathSegments);
             }
         }
 

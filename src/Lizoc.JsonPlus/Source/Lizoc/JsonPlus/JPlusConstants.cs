@@ -75,7 +75,9 @@ namespace Lizoc.JsonPlus
         public const string AltTripleQuote = "'''";
 
         public const char QuoteChar = '\"';
+        public const string Quote = "\"";
         public const char AltQuoteChar = '\'';
+        public const string AltQuote = "'";
 
         public const char EscapeChar = '\\';
         public const string Escape = "\\";
