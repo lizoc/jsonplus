@@ -29,7 +29,7 @@ namespace Lizoc.JsonPlus.Tests
         /// <summary>
         /// Convert string array to <see cref="JsonPlusPath" /> and back.
         /// </summary>
-        /// <remarks>
+        /// <remarks><![CDATA[
         /// - foo, bar  =>  foo.bar
         /// - foo, bar.baz  =>  foo."bar.baz"
         /// - shoot, a "laser" beam  =>  shoot."a \"laser\" beam"
@@ -40,7 +40,7 @@ namespace Lizoc.JsonPlus.Tests
         /// - foo, ``  =>  foo.""
         /// - foo, \  =>  foo."\\"
         /// - $"{}[]:=,#`^?!@*&\  =>  "$\"{}[]:=,#`^?!@*&\\"
-        /// </remarks>
+        /// ]]></remarks>
         [Theory]
         [InlineData(new string[] { "foo", "bar" }, "foo.bar")]
         [InlineData(new string[] { "foo", "bar.baz" }, "foo.\"bar.baz\"")]
