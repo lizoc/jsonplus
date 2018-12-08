@@ -322,5 +322,43 @@ b : literal ${a}";
         }
 
         #endregion // String and array concatenation exception spec
+
+        [Fact]
+        public void ArrayTypeCanMixObjectAndString()
+        {
+            var source = "b = [{a = 1}, test]";
+            var root = JsonPlusParser.Parse(source);
+
+            var array = root.GetValue("b").GetArray();
+
+            var item0 = array[0].GetObject();
+            Assert.Equal(JsonPlusType.Object, item0.Type);
+            Assert.True(item0.ContainsKey("a"));
+            Assert.Equal(JsonPlusType.Literal, item0.GetMember("a").Type);
+            Assert.Equal(JsonPlusLiteralType.Integer, item0.GetMember("a").GetValue().GetLiteralType());
+            Assert.Equal(1, item0.GetMember("a").GetValue().GetInt32());
+
+            var item1 = array[1].GetString();
+            Assert.Equal("test", item1);
+        }
+
+        [Fact]
+        public void ArrayTypeCanMixStringAndObject()
+        {
+            var source = "b = [test, {a = 1}]";
+            var root = JsonPlusParser.Parse(source);
+
+            var array = root.GetValue("b").GetArray();
+
+            var item0 = array[0].GetString();
+            Assert.Equal("test", item0);
+
+            var item1 = array[1].GetObject();
+            Assert.Equal(JsonPlusType.Object, item1.Type);
+            Assert.True(item1.ContainsKey("a"));
+            Assert.Equal(JsonPlusType.Literal, item1.GetMember("a").Type);
+            Assert.Equal(JsonPlusLiteralType.Integer, item1.GetMember("a").GetValue().GetLiteralType());
+            Assert.Equal(1, item1.GetMember("a").GetValue().GetInt32());
+        }
     }
 }

@@ -746,5 +746,16 @@ baz = ${foo.""bar.da\""da""}
             Assert.Equal(32, root.GetInt32("bar.foo.x"));
             Assert.Equal(32, root.GetInt32("daz.foo"));
         }
+
+        [Theory]
+        [InlineData("[${foo}]", new[] { "hello" })]
+        [InlineData("[${foo},world]", new[] { "hello", "world" })]
+        public void SimpleSubstitutionBetweenBracketsShouldResolveToArray(string bar, string[] expected)
+        {
+            var source = $@"foo = hello
+bar = {bar}";
+            var root = JsonPlusParser.Parse(source);
+            Assert.Equal(expected, root.GetStringList("bar").ToArray());
+        }
     }
 }

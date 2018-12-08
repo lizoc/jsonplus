@@ -80,9 +80,13 @@ namespace Lizoc.JsonPlus
                         break;
 
                     case JsonPlusSubstitution sub:
-                        // #todo
                         if (sub.ResolvedValue != null)
-                            result.AddRange(sub.ResolvedValue.GetValue());
+                        {
+                            if (sub.ResolvedValue.Type == JsonPlusType.Array)
+                                result.AddRange(sub.ResolvedValue.GetArray());
+                            else
+                                result.Add(sub.ResolvedValue);
+                        }
                         break;
 
                     case JsonPlusObject obj:
