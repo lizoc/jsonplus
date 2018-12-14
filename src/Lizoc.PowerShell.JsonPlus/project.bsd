@@ -53,6 +53,7 @@ frameworks {
 	}
 }
 # PowerShellStandard.Library is still not out of ga
+# This is needed to avoid NU5104
 versioning {
     suffix = 'beta'
 }
