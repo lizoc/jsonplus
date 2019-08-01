@@ -15,7 +15,7 @@ What does this do?
 ==================
 Json+ is a JSON dialect that we think is easier to write by hand. This repo has parser for Json+, written in C#.
 
-TextScript is **initially forked from [HOCON](https://github.com/akkadotnet/HOCON)** in October 2018, and the code base has diverged since. Some primary differences are:
+Json+ is **initially forked from [HOCON](https://github.com/akkadotnet/HOCON)** in October 2018, and the code base has diverged since. Some primary differences are:
 
 - PowerShell integration through the `ConvertFrom-JsonPlus` cmdlet
 - More robust substitution operations with several bug fixes
